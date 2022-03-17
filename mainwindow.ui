@@ -17,10 +17,10 @@
    <widget class="QLabel" name="Background">
     <property name="geometry">
      <rect>
-      <x>110</x>
-      <y>80</y>
-      <width>1821</width>
-      <height>351</height>
+      <x>0</x>
+      <y>0</y>
+      <width>1961</width>
+      <height>331</height>
      </rect>
     </property>
     <property name="text">
@@ -33,91 +33,6 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QLabel" name="Train1">
-    <property name="geometry">
-     <rect>
-      <x>1750</x>
-      <y>380</y>
-      <width>47</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
-   <widget class="QLabel" name="Train2">
-    <property name="geometry">
-     <rect>
-      <x>1750</x>
-      <y>380</y>
-      <width>47</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
-   <widget class="QLabel" name="Train3">
-    <property name="geometry">
-     <rect>
-      <x>1750</x>
-      <y>380</y>
-      <width>47</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
-   <widget class="QLabel" name="Train4">
-    <property name="geometry">
-     <rect>
-      <x>1750</x>
-      <y>380</y>
-      <width>47</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
-   <widget class="QLabel" name="Train5">
-    <property name="geometry">
-     <rect>
-      <x>1750</x>
-      <y>380</y>
-      <width>47</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
-   <widget class="QLabel" name="Train6">
-    <property name="geometry">
-     <rect>
-      <x>1750</x>
-      <y>380</y>
-      <width>47</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
-   <zorder>Background</zorder>
-   <zorder>Train2</zorder>
-   <zorder>Train3</zorder>
-   <zorder>Train4</zorder>
-   <zorder>Train5</zorder>
-   <zorder>Train6</zorder>
-   <zorder>Train1</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

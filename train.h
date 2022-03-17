@@ -11,6 +11,8 @@ public:
 
     int getId() const;
 
+    void add_duration(int duration);
+
     int getStop_duration() const;
 
 private:

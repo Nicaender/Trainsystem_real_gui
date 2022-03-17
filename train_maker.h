@@ -13,7 +13,7 @@ public:
     void run();
 
 signals:
-    void notify_new_train(Train*);
+    void notify_gate_in(Train*);
 };
 
 #endif // TRAIN_MAKER_H

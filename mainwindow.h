@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <gate_in_manager.h>
 #include <train_maker.h>
+#include <animation.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -19,14 +20,16 @@ public:
     ~MainWindow();
     Gate_In_Manager* gate_in;
     Train_maker* train_create;
+    Animation* canvas_animation;
 
 
 public slots:
     void train_entering(int, Train*);
+    void move_train(int);
+    void reset_train_on_canvas(int);
 
 private:
-    enum direction {left, right, up, down};
-    void move_train();
+    QLabel** train_labels = new QLabel*[PLATFORM_SUM];
     Ui::MainWindow *ui;
 };
 #endif // MAINWINDOW_H
