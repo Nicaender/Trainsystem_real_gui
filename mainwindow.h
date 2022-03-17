@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QLabel>
 #include "traingenerator.h"
+#include "Train.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

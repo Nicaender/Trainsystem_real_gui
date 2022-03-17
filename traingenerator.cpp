@@ -1,8 +1,9 @@
 #include "traingenerator.h"
 
-TrainGenerator::TrainGenerator()
+TrainGenerator::TrainGenerator(QObject* parent)
+    :
+      QThread(parent)
 {
-
 }
 
 /**

@@ -2,14 +2,13 @@
 #define TRAINGENERATOR_H
 
 #include <QThread>
-#include <QObject>
 #include "Train.h"
 
 class TrainGenerator : public QThread
 {
     Q_OBJECT
 public:
-    TrainGenerator();
+    explicit TrainGenerator(QObject* parent = 0);
     void run();
 
 signals:

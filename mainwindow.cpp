@@ -6,7 +6,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    train_thread = new TrainGenerator();
+    train_thread = new TrainGenerator(this);
     connect(train_thread, SIGNAL(TrainGenerated(Train*)), this, SLOT(onTrainGenerated(Train*)));
     QLabel* q = new QLabel(this);
     q->setGeometry(1410, 480, 261, 191);
