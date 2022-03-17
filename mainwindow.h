@@ -21,5 +21,8 @@ private:
     Ui::MainWindow *ui;
     TrainGenerator* train_thread;
 
+public slots:
+    void onTrainGenerated(Train *);
+
 };
 #endif // MAINWINDOW_H
