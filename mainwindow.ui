@@ -6,14 +6,71 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>2202</width>
-    <height>600</height>
+    <width>2021</width>
+    <height>390</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
+   <widget class="QSpinBox" name="interval_setter">
+    <property name="geometry">
+     <rect>
+      <x>640</x>
+      <y>100</y>
+      <width>151</width>
+      <height>111</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>50</pointsize>
+     </font>
+    </property>
+    <property name="minimum">
+     <number>1</number>
+    </property>
+    <property name="value">
+     <number>1</number>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="confirm_button">
+    <property name="geometry">
+     <rect>
+      <x>830</x>
+      <y>130</y>
+      <width>161</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>20</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Confirm</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="reset_button">
+    <property name="geometry">
+     <rect>
+      <x>1020</x>
+      <y>130</y>
+      <width>161</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>20</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Reset</string>
+    </property>
+   </widget>
    <widget class="QLabel" name="Background">
     <property name="geometry">
      <rect>
@@ -33,16 +90,88 @@
      <bool>true</bool>
     </property>
    </widget>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>2202</width>
-     <height>20</height>
-    </rect>
-   </property>
+   <widget class="QLCDNumber" name="out_cd_counter">
+    <property name="geometry">
+     <rect>
+      <x>1810</x>
+      <y>0</y>
+      <width>141</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <property name="digitCount">
+     <number>2</number>
+    </property>
+    <property name="segmentStyle">
+     <enum>QLCDNumber::Flat</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="gate_cooldown">
+    <property name="geometry">
+     <rect>
+      <x>1540</x>
+      <y>10</y>
+      <width>261</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>20</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Gate out cooldown: </string>
+    </property>
+    <property name="alignment">
+     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+    </property>
+   </widget>
+   <widget class="QLabel" name="closer">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>2021</width>
+      <height>391</height>
+     </rect>
+    </property>
+    <property name="autoFillBackground">
+     <bool>true</bool>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="question">
+    <property name="geometry">
+     <rect>
+      <x>630</x>
+      <y>50</y>
+      <width>171</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>20</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Train interval?</string>
+    </property>
+   </widget>
+   <zorder>Background</zorder>
+   <zorder>gate_cooldown</zorder>
+   <zorder>out_cd_counter</zorder>
+   <zorder>closer</zorder>
+   <zorder>confirm_button</zorder>
+   <zorder>reset_button</zorder>
+   <zorder>interval_setter</zorder>
+   <zorder>question</zorder>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>

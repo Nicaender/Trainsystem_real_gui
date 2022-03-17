@@ -13,23 +13,24 @@ void Animation::run()
         {
             emit move_entering_on_canvas(pos_in);
             duration_in--;
-//            qDebug() << "Duration-in: " << duration_in << '\n';
             if(duration_in == 0)
             {
+                emit train_arrived_on_platform(pos_in, train_in);
                 entering = false;
                 pos_in = -1;
+                train_in = nullptr;
             }
         }
         if(exiting && duration_out != 0)
         {
             emit move_exiting_on_canvas(pos_out);
             duration_out--;
-//            qDebug() << "Duration-out: " << duration_in << '\n';
             if(duration_out == 0)
             {
                 emit destroy_train(pos_out);
                 exiting = false;
                 pos_out = -1;
+                train_out = nullptr;
             }
         }
 
@@ -37,19 +38,20 @@ void Animation::run()
     }
 }
 
-void Animation::start_animating(int pos, bool gate_in)
+void Animation::start_animating(int pos, bool gate_in, Train* input)
 {
-    qDebug() << "start_animation_entering received" << '\n';
     if(gate_in)
     {
         this->entering = true;
         pos_in = pos;
         duration_in = GATE_IN_DURATION;
+        train_in = input;
     }
     else
     {
         this->exiting =  true;
         pos_out = pos;
         duration_out = GATE_OUT_DURATION;
+        train_out = input;
     }
 }

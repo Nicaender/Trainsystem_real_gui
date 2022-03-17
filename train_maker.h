@@ -3,7 +3,7 @@
 
 #include <QThread>
 #include <QObject>
-#include <database.h>
+#include <gate_in_manager.h>
 
 class Train_maker : public QThread
 {
@@ -11,6 +11,7 @@ class Train_maker : public QThread
 public:
     explicit Train_maker(QObject *parent = nullptr);
     void run();
+    int trail_interval = -1;
 
 signals:
     void notify_gate_in(Train*);

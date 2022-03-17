@@ -2,19 +2,18 @@
 
 Gate_In_Manager::Gate_In_Manager(QObject *parent) : QThread(parent)
 {
-
+    for(int i = 0; i < PLATFORM_SUM; i++)
+        platforms[i] = nullptr;
 }
 
 void Gate_In_Manager::run()
 {
     while(true)
     {
-        // cek kereta masuk && pintu masuk free && ada platform free
-        if(!incoming_train.empty() && train_in_cooldown == 0 && this->check_free_platform() != -1)
+        if(train_out_cooldown == 0)
         {
-            qDebug() << "Kereta otw platform" << '\n';
-            this->notify_train_into_platform(this->check_free_platform());
-            train_in_cooldown = GATE_IN_DURATION;
+            gate_out_ready = true;
+            train_out_cooldown = -1;
         }
 
         // kurangin stay duration setiap kereta di platform
@@ -30,65 +29,69 @@ void Gate_In_Manager::run()
             }
         }
 
-        // kalau ada yang di queue keluar
-        if(!outcoming_train_pos.empty() && train_out_cooldown == 0)
+        // kalo ada kereta yang mau masuk, dan gate in ready, dan ada platform kosong, masukin ke platform
+        if(!incoming_train.empty() && gate_in_ready && this->check_free_platform() != -1)
         {
-            qDebug() << "Kereta keluar dari platform" << '\n';
-            this->notify_train_exiting_platform(outcoming_train_pos.front());
-            train_out_cooldown = GATE_OUT_DURATION + GATE_OUT_OUT;
+            this->notify_train_into_platform(this->check_free_platform());
+            gate_in_ready = false;
         }
 
-        qDebug() << "Urutan keluar: ";
-        for(unsigned int i = 0; i < outcoming_train_pos.size(); i++)
+        // kalau ada yang di queue keluar
+        if(!outcoming_train_pos.empty() && gate_out_ready)
         {
-            if(platforms[i])
-                qDebug() << "Train " << platforms[outcoming_train_pos[i]]->getId();
+            this->notify_train_exiting_platform(outcoming_train_pos.front(), platforms[outcoming_train_pos.front()]);
+            gate_out_ready = false;
         }
-        qDebug() << '\n';
+        if(train_out_cooldown >= 0)
+            emit update_cooldown_canvas(train_out_cooldown);
         this->sleep(1);
-        if(train_in_cooldown > 0)
-            train_in_cooldown--;
         if(train_out_cooldown > 0)
+        {
             train_out_cooldown--;
+            emit update_cooldown_canvas(train_out_cooldown);
+        }
     }
 }
 
-void Gate_In_Manager::notify_train_into_platform(int pos)
+void Gate_In_Manager::notify_train_into_platform(int pos) // finished - tell animation and mainwindow to move the train
 {
-    platforms[pos] = incoming_train.front();
+    Train* tmp = incoming_train.front();
     incoming_train.pop();
-    emit train_in_entrance(pos, platforms[pos]);
-    platforms[pos]->add_duration(GATE_IN_DURATION);
-    emit notify_animation(pos, true);
+    emit train_in_entrance(pos, tmp);
+    emit notify_animation(pos, true, tmp);
     return;
 }
 
-void Gate_In_Manager::notify_train_exiting_platform(int pos)
+void Gate_In_Manager::notify_train_exiting_platform(int pos, Train* input) // finished - tell animation and mainwindow to move the train
 {
-    emit notify_animation(pos, false);
+    emit notify_animation(pos, false, input);
+    outcoming_train_pos.pop_front();
     return;
 }
 
-void Gate_In_Manager::notified_to_remove_train(int pos) // delete kalo udah disuruh animation
+void Gate_In_Manager::notified_to_remove_train(int pos) // unfinished - delete the train after the train leaves the station
 {
     delete platforms[pos];
     platforms[pos] = nullptr;
-    outcoming_train_pos.pop_front();
-    emit notify_canvas_to_destroy_train(pos);
+    train_out_cooldown = GATE_OUT_COOLDOWN;
+    emit update_cooldown_canvas(train_out_cooldown);
     return;
 }
 
-void Gate_In_Manager::on_new_train_notified(Train * input)
+void Gate_In_Manager::on_new_train_notified(Train* input) // finished - put a train in waiting list
 {
     incoming_train.push(input);
+    return;
 }
 
-void Gate_In_Manager::path_clear(bool)
+void Gate_In_Manager::set_train_on_platform(int pos, Train* input) // help function - akan dipanggil oleh animation kalau sudah sampai kesana
 {
-
+    platforms[pos] = input;
+    gate_in_ready = true;
+    return;
 }
 
-int Gate_In_Manager::check_free_platform()
+int Gate_In_Manager::check_free_platform() // help function - check available platform
 {
     // cari platform yang kosong
     for(int i = 0; i < PLATFORM_SUM; i++)

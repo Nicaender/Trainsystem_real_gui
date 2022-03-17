@@ -10,7 +10,6 @@ CONFIG += c++11
 
 SOURCES += \
     animation.cpp \
-    database.cpp \
     gate_in_manager.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -19,7 +18,6 @@ SOURCES += \
 
 HEADERS += \
     animation.h \
-    database.h \
     gate_in_manager.h \
     mainwindow.h \
     train.h \
