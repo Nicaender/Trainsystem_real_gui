@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QLabel>
+#include "traingenerator.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -17,5 +19,7 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    TrainGenerator* train_thread;
+
 };
 #endif // MAINWINDOW_H
