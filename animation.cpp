@@ -9,7 +9,14 @@ void Animation::run()
 {
     while(true)
     {
-        if(entering && duration_in != 0)
+        if(this->should_sleep != 2)
+        {
+            this->sleep(1);
+            this->animation = true;
+        }
+        else
+            this->animation = false;
+        if(entering && duration_in != 0 && this->animation)
         {
             emit move_entering_on_canvas(pos_in);
             duration_in--;
@@ -19,9 +26,10 @@ void Animation::run()
                 entering = false;
                 pos_in = -1;
                 train_in = nullptr;
+                this->should_sleep++;
             }
         }
-        if(exiting && duration_out != 0)
+        if(exiting && duration_out != 0 && this->animation)
         {
             emit move_exiting_on_canvas(pos_out);
             duration_out--;
@@ -31,15 +39,15 @@ void Animation::run()
                 exiting = false;
                 pos_out = -1;
                 train_out = nullptr;
+                this->should_sleep++;
             }
         }
-
-        this->sleep(1);
     }
 }
 
 void Animation::start_animating(int pos, bool gate_in, Train* input)
 {
+    this->should_sleep--;
     if(gate_in)
     {
         this->entering = true;

@@ -23,6 +23,7 @@ public:
 
 signals:
     void notify_gate_to_cooldown(int);
+    void notify_animation(int, bool, Train*);
 
 public slots:
     void train_entering(int, Train*);

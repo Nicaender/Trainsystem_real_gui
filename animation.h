@@ -30,6 +30,8 @@ private:
     bool exiting = false;
     Train* train_in = nullptr;
     Train* train_out = nullptr;
+    int should_sleep = 2;
+    bool animation = false;
 };
 
 #endif // ANIMATION_H

@@ -8,13 +8,16 @@ Gate_In_Manager::Gate_In_Manager(QObject *parent) : QThread(parent)
 
 void Gate_In_Manager::run()
 {
+    int tmp_cooldown = -1;
     while(true)
     {
-        if(train_out_cooldown == 0)
+        tmp_cooldown = train_out_cooldown;
+        if(tmp_cooldown == 1)
         {
             gate_out_ready = true;
-            train_out_cooldown = -1;
         }
+        if(tmp_cooldown == 0)
+            train_out_cooldown = -1;
 
         // kurangin stay duration setiap kereta di platform
         for(int i = 0; i < PLATFORM_SUM; i++)
@@ -42,14 +45,14 @@ void Gate_In_Manager::run()
             this->notify_train_exiting_platform(outcoming_train_pos.front(), platforms[outcoming_train_pos.front()]);
             gate_out_ready = false;
         }
-        if(train_out_cooldown >= 0)
-            emit update_cooldown_canvas(train_out_cooldown);
-        this->sleep(1);
-        if(train_out_cooldown > 0)
+
+        if(tmp_cooldown > 0)
         {
+            tmp_cooldown--;
             train_out_cooldown--;
-            emit update_cooldown_canvas(train_out_cooldown);
+            emit update_cooldown_canvas(tmp_cooldown);
         }
+        this->sleep(1);
     }
 }
 
@@ -58,7 +61,6 @@ void Gate_In_Manager::notify_train_into_platform(int pos) // finished - tell ani
     Train* tmp = incoming_train.front();
     incoming_train.pop();
     emit train_in_entrance(pos, tmp);
-    emit notify_animation(pos, true, tmp);
     return;
 }
 

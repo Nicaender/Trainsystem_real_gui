@@ -4,6 +4,7 @@
 #include <QThread>
 #include <QObject>
 #include <gate_in_manager.h>
+#include <windows.h>
 
 class Train_maker : public QThread
 {
