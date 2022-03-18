@@ -69,7 +69,7 @@ void Gate_In_Manager::notify_train_exiting_platform(int pos, Train* input) // fi
     return;
 }
 
-void Gate_In_Manager::notified_to_remove_train(int pos) // unfinished - delete the train after the train leaves the station
+void Gate_In_Manager::notified_to_remove_train(int pos) // finished - delete the train after the train leaves the station
 {
     delete platforms[pos];
     platforms[pos] = nullptr;
