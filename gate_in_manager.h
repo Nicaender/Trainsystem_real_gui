@@ -5,6 +5,7 @@
 #include <QObject>
 #include <train.h>
 #include <queue>
+#include <QMutex>
 
 #define PLATFORM_SUM 5
 #define GATE_OUT_COOLDOWN 20
@@ -33,6 +34,7 @@ private:
     int train_out_cooldown = -1;
     int check_free_platform();
     bool pathway_entering = true, gate_in_ready = true, gate_out_ready = true;
+    int multiplier = 10;
 
     Train* platforms[PLATFORM_SUM];
     std::queue<Train*> incoming_train;

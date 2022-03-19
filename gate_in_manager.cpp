@@ -11,6 +11,8 @@ void Gate_In_Manager::run()
     int tmp_cooldown = -1;
     while(true)
     {
+        QMutex m;
+        m.lock();
         tmp_cooldown = train_out_cooldown;
         if(tmp_cooldown == 1)
         {
@@ -52,7 +54,8 @@ void Gate_In_Manager::run()
             train_out_cooldown--;
             emit update_cooldown_canvas(tmp_cooldown);
         }
-        this->sleep(1);
+        this->msleep(1000 / multiplier);
+        m.unlock();
     }
 }
 

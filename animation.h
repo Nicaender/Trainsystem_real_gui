@@ -4,9 +4,10 @@
 #include <QThread>
 #include <QObject>
 #include <gate_in_manager.h>
+#include <QMutex>
 
-#define GATE_IN_DURATION 9
-#define GATE_OUT_DURATION 10
+#define GATE_IN_DURATION 90
+#define GATE_OUT_DURATION 100
 
 class Animation : public QThread
 {
@@ -30,8 +31,9 @@ private:
     bool exiting = false;
     Train* train_in = nullptr;
     Train* train_out = nullptr;
-    int should_sleep = 2;
-    bool animation = false;
+    bool first_animating = false;
+    bool currently_animating = false;
+    int multiplier = 10;
 };
 
 #endif // ANIMATION_H

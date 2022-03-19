@@ -48,19 +48,19 @@ void MainWindow::train_entering(int i, Train* input)
 void MainWindow::move_train(int i)
 {
     int y = 272 - (i * 50);
-    if(train_labels[i]->x() == 1790)
-        train_labels[i]->move(1650, train_labels[i]->y());
+    if(train_labels[i]->x() > 1650)
+        train_labels[i]->move(train_labels[i]->x()-14, train_labels[i]->y());
     else if(train_labels[i]->x() > 710)
     {
         if(train_labels[i]->y() > y)
-            train_labels[i]->move(train_labels[i]->x(), train_labels[i]->y()-50);
-        train_labels[i]->move(train_labels[i]->x()-90, train_labels[i]->y());
+            train_labels[i]->move(train_labels[i]->x(), train_labels[i]->y()-5);
+        train_labels[i]->move(train_labels[i]->x()-9, train_labels[i]->y());
     }
     else
     {
-        if(train_labels[i]->y() < 272 && train_labels[i]->x() < (710 - 90 * (PLATFORM_SUM - i)))
-            train_labels[i]->move(train_labels[i]->x(), train_labels[i]->y()+50);
-        train_labels[i]->move(train_labels[i]->x()-90, train_labels[i]->y());
+        if(train_labels[i]->y() < 272 && train_labels[i]->x() < (710 - 110 * (PLATFORM_SUM - i)))
+            train_labels[i]->move(train_labels[i]->x(), train_labels[i]->y()+5);
+        train_labels[i]->move(train_labels[i]->x()-11, train_labels[i]->y());
     }
 }
 

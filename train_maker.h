@@ -5,6 +5,7 @@
 #include <QObject>
 #include <gate_in_manager.h>
 #include <windows.h>
+#include <QMutex>
 
 class Train_maker : public QThread
 {
@@ -16,6 +17,9 @@ public:
 
 signals:
     void notify_gate_in(Train*);
+
+private:
+    int multiplier = 10;
 };
 
 #endif // TRAIN_MAKER_H

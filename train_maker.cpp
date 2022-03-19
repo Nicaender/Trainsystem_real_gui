@@ -12,8 +12,11 @@ void Train_maker::run()
     srand(cicles.QuadPart);
     while(true)
     {
+        QMutex m;
+        m.lock();
         Train* new_train = new Train((1+rand()%99), rand()%30);
         emit notify_gate_in(new_train);
-        this->sleep(this->trail_interval);
+        this->msleep(this->trail_interval / multiplier);
+        m.unlock();
     }
 }
