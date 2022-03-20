@@ -9,7 +9,6 @@
 #include <QDebug>
 
 #define PLATFORM_SUM 5
-#define GATE_OUT_COOLDOWN 20
 
 class Gate_In_Manager : public QThread
 {
@@ -19,6 +18,8 @@ public:
     void run();
 
     void setMultiplier(int newMultiplier);
+
+    void setGate_out_cooldown(int newGate_out_cooldown);
 
 signals:
     void train_in_entrance(int,Train*);
@@ -37,6 +38,7 @@ private:
     void notify_train_into_platform(int pos);
     void notify_train_exiting_platform(int pos, Train*);
 
+    int gate_out_cooldown = -1;
     int train_out_cooldown = -1;
     int check_free_platform();
     bool pathway_entering = true, gate_in_ready = true, gate_out_ready = true;

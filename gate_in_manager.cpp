@@ -83,11 +83,16 @@ void Gate_In_Manager::notify_train_exiting_platform(int pos, Train* input) // fi
     return;
 }
 
+void Gate_In_Manager::setGate_out_cooldown(int newGate_out_cooldown)
+{
+    gate_out_cooldown = newGate_out_cooldown;
+}
+
 void Gate_In_Manager::notified_to_remove_train(int pos) // finished - delete the train after the train leaves the station
 {
     delete platforms[pos];
     platforms[pos] = nullptr;
-    train_out_cooldown = GATE_OUT_COOLDOWN;
+    train_out_cooldown = gate_out_cooldown;
     emit update_cooldown_canvas(train_out_cooldown);
     return;
 }

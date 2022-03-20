@@ -111,6 +111,7 @@ void MainWindow::on_start_button_clicked()
 {
     ui->start_background->hide();
     ui->start_button->hide();
+    gate_in->setGate_out_cooldown(ui->train_interval_slider->value());
     train_create->setTrain_interval(ui->train_interval_slider->value());
     ui->multiplier_current->display(ui->multiplier_slider->value());
     ui->train_interval_current->display(ui->train_interval_slider->value());
@@ -132,6 +133,7 @@ void MainWindow::on_train_interval_slider_sliderMoved(int position)
 {
     train_create->setTrain_interval(position);
     ui->train_interval_current->display(position);
+    gate_in->setGate_out_cooldown(position);
 }
 
 
