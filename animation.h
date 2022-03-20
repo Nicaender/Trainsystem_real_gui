@@ -6,8 +6,8 @@
 #include <gate_in_manager.h>
 #include <QMutex>
 
-#define GATE_IN_DURATION 90
-#define GATE_OUT_DURATION 100
+#define GATE_IN_DURATION 9 // kalau mau pakai smoother animation, di kali dengan speed yang diinginkan
+#define GATE_OUT_DURATION 10 // kalau mau pakai smoother animation, di kali dengan speed yang diinginkan
 
 class Animation : public QThread
 {
@@ -15,6 +15,8 @@ class Animation : public QThread
 public:
     explicit Animation(QObject *parent = nullptr);
     void run();
+
+    void setMultiplier(int newMultiplier);
 
 signals:
     void move_entering_on_canvas(int);
@@ -33,7 +35,7 @@ private:
     Train* train_out = nullptr;
     bool first_animating = false;
     bool currently_animating = false;
-    int multiplier = 10;
+    int multiplier = 1;
 };
 
 #endif // ANIMATION_H

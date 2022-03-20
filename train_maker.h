@@ -15,11 +15,13 @@ public:
     void run();
     int trail_interval = -1;
 
+    void setMultiplier(int newMultiplier);
+
 signals:
     void notify_gate_in(Train*);
 
 private:
-    int multiplier = 10;
+    int multiplier = 1;
 };
 
 #endif // TRAIN_MAKER_H

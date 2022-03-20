@@ -10,13 +10,25 @@ void Train_maker::run()
     LARGE_INTEGER cicles;
     QueryPerformanceCounter(&cicles);
     srand(cicles.QuadPart);
+    int counter = 0;
     while(true)
     {
         QMutex m;
         m.lock();
-        Train* new_train = new Train((1+rand()%99), rand()%30);
-        emit notify_gate_in(new_train);
-        this->msleep(this->trail_interval / multiplier);
+        if(counter != 0)
+            counter--;
+        if(counter == 0)
+        {
+            Train* new_train = new Train((1+rand()%99), 70); // (7 * rand()) % 100
+            counter = this->trail_interval;
+            emit notify_gate_in(new_train);
+        }
+        this->msleep(1000 / multiplier);
         m.unlock();
     }
+}
+
+void Train_maker::setMultiplier(int newMultiplier)
+{
+    this->multiplier = newMultiplier;
 }

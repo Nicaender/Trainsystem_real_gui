@@ -30,11 +30,15 @@ public slots:
     void move_train(int);
     void reset_train_on_canvas(int);
     void update_out_cooldown(int);
+    void time_update(int);
+    void change_to_red_train(int);
 
 private slots:
     void on_confirm_button_clicked();
 
     void on_reset_button_clicked();
+
+    void on_multiplier_execute_clicked();
 
 private:
     void start_simulation();

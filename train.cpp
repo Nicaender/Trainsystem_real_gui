@@ -25,3 +25,13 @@ int Train::getStop_duration() const
 {
     return stop_duration;
 }
+
+bool Train::getOut_waiting_list() const
+{
+    return out_waiting_list;
+}
+
+void Train::setOut_waiting_list(bool newOut_waiting_list)
+{
+    out_waiting_list = newOut_waiting_list;
+}

@@ -13,6 +13,8 @@ void Gate_In_Manager::run()
     {
         QMutex m;
         m.lock();
+        emit time_update(this->timer);
+        timer++;
         tmp_cooldown = train_out_cooldown;
         if(tmp_cooldown == 1)
         {
@@ -26,10 +28,13 @@ void Gate_In_Manager::run()
         {
             if(platforms[i])
             {
-                platforms[i]->stop_reduction();
-                if(platforms[i]->getStop_duration() == 0)
+                if(platforms[i]->getStop_duration() > 0)
+                    platforms[i]->stop_reduction();
+                if(platforms[i]->getStop_duration() == 0 && platforms[i]->getOut_waiting_list() == false)
                 {
                     outcoming_train_pos.push_back(i);
+                    platforms[i]->setOut_waiting_list(true);
+                    emit change_color_to_red(i);
                 }
             }
         }
@@ -107,4 +112,9 @@ int Gate_In_Manager::check_free_platform() // help function - check available pl
         }
     }
     return -1;
+}
+
+void Gate_In_Manager::setMultiplier(int newMultiplier)
+{
+    this->multiplier = newMultiplier;
 }

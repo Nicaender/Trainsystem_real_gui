@@ -15,9 +15,13 @@ public:
 
     int getStop_duration() const;
 
+    bool getOut_waiting_list() const;
+    void setOut_waiting_list(bool newOut_waiting_list);
+
 private:
     int id;
     int stop_duration;
+    bool out_waiting_list = false;
 };
 
 #endif // TRAIN_H

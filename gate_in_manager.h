@@ -6,6 +6,7 @@
 #include <train.h>
 #include <queue>
 #include <QMutex>
+#include <QDebug>
 
 #define PLATFORM_SUM 5
 #define GATE_OUT_COOLDOWN 20
@@ -17,10 +18,14 @@ public:
     explicit Gate_In_Manager(QObject *parent = nullptr);
     void run();
 
+    void setMultiplier(int newMultiplier);
+
 signals:
     void train_in_entrance(int,Train*);
     void notify_animation(int, bool, Train*); // kalau true, suruh animasi masuk, false = animasi keluar
     void update_cooldown_canvas(int);
+    void time_update(int);
+    void change_color_to_red(int);
 
 public slots:
     void notified_to_remove_train(int);
@@ -34,7 +39,8 @@ private:
     int train_out_cooldown = -1;
     int check_free_platform();
     bool pathway_entering = true, gate_in_ready = true, gate_out_ready = true;
-    int multiplier = 10;
+    int multiplier = 1;
+    int timer = 0;
 
     Train* platforms[PLATFORM_SUM];
     std::queue<Train*> incoming_train;

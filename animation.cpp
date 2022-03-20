@@ -43,7 +43,8 @@ void Animation::run()
             }
         }
 
-        this->msleep(100 / multiplier);
+        if(entering || duration_in != 0 || exiting || duration_out != 0)
+            this->msleep(1000 / multiplier); // kalau mau pakai smoother animation, di bagi dengan speed yang diinginkan
         if(!entering && duration_in == 0 && !exiting && duration_out == 0)
             this->currently_animating = false;
         m.unlock();
@@ -68,4 +69,9 @@ void Animation::start_animating(int pos, bool gate_in, Train* input)
         duration_out = GATE_OUT_DURATION;
         train_out = input;
     }
+}
+
+void Animation::setMultiplier(int newMultiplier)
+{
+    this->multiplier = newMultiplier;
 }
