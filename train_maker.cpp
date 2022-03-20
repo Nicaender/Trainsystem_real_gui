@@ -19,7 +19,7 @@ void Train_maker::run()
             counter--;
         if(counter == 0)
         {
-            Train* new_train = new Train((1+rand()%99), 70); // (7 * rand()) % 100
+            Train* new_train = new Train((1+rand()%999), (7 * rand()) % 100); //
             counter = this->trail_interval;
             emit notify_gate_in(new_train);
         }

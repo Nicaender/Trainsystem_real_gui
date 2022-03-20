@@ -32,13 +32,13 @@ public slots:
     void update_out_cooldown(int);
     void time_update(int);
     void change_to_red_train(int);
+    void update_in_waiting_list(QString);
 
 private slots:
-    void on_confirm_button_clicked();
 
-    void on_reset_button_clicked();
+    void on_start_button_clicked();
 
-    void on_multiplier_execute_clicked();
+    void on_execute_button_clicked();
 
 private:
     void start_simulation();

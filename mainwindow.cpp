@@ -9,8 +9,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     for(int i = 0; i < PLATFORM_SUM; i++){
         train_labels[i] = new QLabel(this);
-        train_labels[i]->setGeometry(1790, 272, 111, 41);
+        train_labels[i]->setGeometry(1790, 472, 111, 41);
     }
+
+    ui->in_waiting_list->setStyleSheet("border: 1px solid black;");
 
     gate_in = new Gate_In_Manager(this);
     train_create = new Train_maker(this);
@@ -18,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(gate_in, SIGNAL(update_cooldown_canvas(int)), this, SLOT(update_out_cooldown(int))); // update waktu
     connect(gate_in, SIGNAL(time_update(int)), this, SLOT(time_update(int))); // update jam
+    connect(gate_in, SIGNAL(update_in_waiting_list(QString)), this, SLOT(update_in_waiting_list(QString))); // connect waiting list dari luar
     connect(train_create, SIGNAL(notify_gate_in(Train*)), gate_in, SLOT(on_new_train_notified(Train*))); // Train to station
     connect(gate_in, SIGNAL(train_in_entrance(int,Train*)), this, SLOT(train_entering(int,Train*))); // dari gate bikin kereta
     connect(this, SIGNAL(notify_animation(int,bool,Train*)), canvas_animation, SLOT(start_animating(int,bool,Train*))); // dari canvas suruh gerakin animasi
@@ -48,7 +51,7 @@ void MainWindow::train_entering(int i, Train* input)
 
 void MainWindow::move_train(int i)
 {
-    int y = 272 - (i * 50);
+    int y = 472 - (i * 50);
     if(train_labels[i]->x() > 1650)
         train_labels[i]->move(train_labels[i]->x()-140, train_labels[i]->y()); // kalau mau pakai smoother animation, di bagi dengan speed yang diinginkan
     else if(train_labels[i]->x() > 710)
@@ -59,7 +62,7 @@ void MainWindow::move_train(int i)
     }
     else
     {
-        if(train_labels[i]->y() < 272 && train_labels[i]->x() < (710 - 90 * (PLATFORM_SUM - i)))
+        if(train_labels[i]->y() < 472 && train_labels[i]->x() < (710 - 90 * (PLATFORM_SUM - i)))
             train_labels[i]->move(train_labels[i]->x(), train_labels[i]->y()+50); // kalau mau pakai smoother animation, di bagi dengan speed yang diinginkan
         train_labels[i]->move(train_labels[i]->x()-90, train_labels[i]->y()); // kalau mau pakai smoother animation, di bagi dengan speed yang diinginkan
     }
@@ -67,7 +70,7 @@ void MainWindow::move_train(int i)
 
 void MainWindow::reset_train_on_canvas(int i)
 {
-    train_labels[i]->move(1790, 272);
+    train_labels[i]->move(1790, 472);
     train_labels[i]->setText("");
     train_labels[i]->setStyleSheet("font: 18pt;");
     train_labels[i]->setAutoFillBackground(false);
@@ -92,16 +95,9 @@ void MainWindow::change_to_red_train(int i)
     train_labels[i]->setStyleSheet("background-color:rgb(255,205,205);font: 18pt;");
 }
 
-
-void MainWindow::on_confirm_button_clicked()
+void MainWindow::update_in_waiting_list(QString i)
 {
-    train_create->trail_interval = ui->interval_setter->value();
-    ui->closer->hide();
-    ui->question->hide();
-    ui->confirm_button->hide();
-    ui->reset_button->hide();
-    ui->interval_setter->hide();
-    this->start_simulation();
+    ui->in_waiting_list->setText(i);
 }
 
 void MainWindow::start_simulation()
@@ -111,16 +107,19 @@ void MainWindow::start_simulation()
     train_create->start();
 }
 
-
-void MainWindow::on_reset_button_clicked()
+void MainWindow::on_start_button_clicked()
 {
-    ui->interval_setter->setValue(1);
+    ui->start_background->hide();
+    ui->start_button->hide();
+    train_create->trail_interval = ui->train_interval_spinbox->value();
+    this->start_simulation();
 }
 
-void MainWindow::on_multiplier_execute_clicked()
+void MainWindow::on_execute_button_clicked()
 {
-    gate_in->setMultiplier(ui->multiplier_setter->value());
-    canvas_animation->setMultiplier(ui->multiplier_setter->value());
-    train_create->setMultiplier(ui->multiplier_setter->value());
+    train_create->trail_interval = ui->train_interval_spinbox->value();
+    gate_in->setMultiplier(ui->multiplier_spinbox->value());
+    canvas_animation->setMultiplier(ui->multiplier_spinbox->value());
+    train_create->setMultiplier(ui->multiplier_spinbox->value());
 }
 

@@ -26,6 +26,7 @@ signals:
     void update_cooldown_canvas(int);
     void time_update(int);
     void change_color_to_red(int);
+    void update_in_waiting_list(QString);
 
 public slots:
     void notified_to_remove_train(int);
@@ -43,7 +44,7 @@ private:
     int timer = 0;
 
     Train* platforms[PLATFORM_SUM];
-    std::queue<Train*> incoming_train;
+    std::deque<Train*> incoming_train;
     std::deque<int> outcoming_train_pos;
 };
 

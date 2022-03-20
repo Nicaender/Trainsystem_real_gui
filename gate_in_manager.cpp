@@ -66,9 +66,13 @@ void Gate_In_Manager::run()
 
 void Gate_In_Manager::notify_train_into_platform(int pos) // finished - tell animation and mainwindow to move the train
 {
+    std::string in_waiting_list = "Next Train: ";
     Train* tmp = incoming_train.front();
-    incoming_train.pop();
+    incoming_train.pop_front();
     emit train_in_entrance(pos, tmp);
+    for(unsigned int i = 0; i < incoming_train.size(); i++)
+        in_waiting_list.append("Train " + std::to_string(incoming_train[i]->getId()) + ", ");
+    emit update_in_waiting_list(QString::fromStdString(in_waiting_list));
     return;
 }
 
@@ -90,7 +94,11 @@ void Gate_In_Manager::notified_to_remove_train(int pos) // finished - delete the
 
 void Gate_In_Manager::on_new_train_notified(Train* input) // finished - put a train in waiting list
 {
-    incoming_train.push(input);
+    incoming_train.push_back(input);
+    std::string in_waiting_list = "Next Train: ";
+    for(unsigned int i = 0; i < incoming_train.size(); i++)
+        in_waiting_list.append("Train " + std::to_string(incoming_train[i]->getId()) + ", ");
+    emit update_in_waiting_list(QString::fromStdString(in_waiting_list));
     return;
 }
 
