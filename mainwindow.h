@@ -38,7 +38,11 @@ private slots:
 
     void on_start_button_clicked();
 
-    void on_execute_button_clicked();
+    void on_multiplier_slider_sliderMoved(int position);
+
+    void on_train_interval_slider_sliderMoved(int position);
+
+    void on_stay_duration_slider_sliderMoved(int position);
 
 private:
     void start_simulation();

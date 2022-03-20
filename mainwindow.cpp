@@ -111,15 +111,33 @@ void MainWindow::on_start_button_clicked()
 {
     ui->start_background->hide();
     ui->start_button->hide();
-    train_create->trail_interval = ui->train_interval_spinbox->value();
+    train_create->setTrain_interval(ui->train_interval_slider->value());
+    ui->multiplier_current->display(ui->multiplier_slider->value());
+    ui->train_interval_current->display(ui->train_interval_slider->value());
+    ui->stay_duration_current->display(ui->stay_duration_slider->value());
     this->start_simulation();
 }
 
-void MainWindow::on_execute_button_clicked()
+
+void MainWindow::on_multiplier_slider_sliderMoved(int position)
 {
-    train_create->trail_interval = ui->train_interval_spinbox->value();
-    gate_in->setMultiplier(ui->multiplier_spinbox->value());
-    canvas_animation->setMultiplier(ui->multiplier_spinbox->value());
-    train_create->setMultiplier(ui->multiplier_spinbox->value());
+    gate_in->setMultiplier(position);
+    canvas_animation->setMultiplier(position);
+    train_create->setMultiplier(position);
+    ui->multiplier_current->display(position);
+}
+
+
+void MainWindow::on_train_interval_slider_sliderMoved(int position)
+{
+    train_create->setTrain_interval(position);
+    ui->train_interval_current->display(position);
+}
+
+
+void MainWindow::on_stay_duration_slider_sliderMoved(int position)
+{
+    train_create->setStay_duration(position);
+    ui->stay_duration_current->display(position);
 }
 

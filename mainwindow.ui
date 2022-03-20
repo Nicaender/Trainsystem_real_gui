@@ -14,27 +14,6 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QSpinBox" name="train_interval_spinbox">
-    <property name="geometry">
-     <rect>
-      <x>115</x>
-      <y>50</y>
-      <width>71</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>18</pointsize>
-     </font>
-    </property>
-    <property name="minimum">
-     <number>1</number>
-    </property>
-    <property name="value">
-     <number>30</number>
-    </property>
-   </widget>
    <widget class="QLabel" name="Background">
     <property name="geometry">
      <rect>
@@ -92,8 +71,8 @@
    <widget class="QLabel" name="train_interval_text">
     <property name="geometry">
      <rect>
-      <x>0</x>
-      <y>50</y>
+      <x>190</x>
+      <y>10</y>
       <width>101</width>
       <height>21</height>
      </rect>
@@ -104,55 +83,13 @@
      </font>
     </property>
     <property name="text">
-     <string>Train interval: </string>
-    </property>
-   </widget>
-   <widget class="QSpinBox" name="multiplier_spinbox">
-    <property name="geometry">
-     <rect>
-      <x>115</x>
-      <y>10</y>
-      <width>71</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>18</pointsize>
-     </font>
-    </property>
-    <property name="minimum">
-     <number>1</number>
-    </property>
-    <property name="maximum">
-     <number>100</number>
-    </property>
-    <property name="value">
-     <number>1</number>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="execute_button">
-    <property name="geometry">
-     <rect>
-      <x>5</x>
-      <y>90</y>
-      <width>61</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <pointsize>12</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>Execute</string>
+     <string>Train interval</string>
     </property>
    </widget>
    <widget class="QLabel" name="multiplier_text">
     <property name="geometry">
      <rect>
-      <x>0</x>
+      <x>20</x>
       <y>10</y>
       <width>111</width>
       <height>21</height>
@@ -164,7 +101,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Fast forwarding: </string>
+     <string>Fast forwarding</string>
     </property>
    </widget>
    <widget class="QLabel" name="timer">
@@ -239,16 +176,224 @@
      <string>Next Train: </string>
     </property>
    </widget>
+   <widget class="QSlider" name="multiplier_slider">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>35</y>
+      <width>121</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="minimum">
+     <number>1</number>
+    </property>
+    <property name="maximum">
+     <number>100</number>
+    </property>
+    <property name="pageStep">
+     <number>5</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QSlider" name="train_interval_slider">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>35</y>
+      <width>111</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="minimum">
+     <number>5</number>
+    </property>
+    <property name="maximum">
+     <number>75</number>
+    </property>
+    <property name="pageStep">
+     <number>5</number>
+    </property>
+    <property name="value">
+     <number>20</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="multiplier_min_max">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>50</y>
+      <width>151</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>1               100</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="train_interval_min_max">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>50</y>
+      <width>141</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>5               75</string>
+    </property>
+   </widget>
+   <widget class="QLCDNumber" name="multiplier_current">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>50</y>
+      <width>41</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <property name="digitCount">
+     <number>3</number>
+    </property>
+    <property name="segmentStyle">
+     <enum>QLCDNumber::Flat</enum>
+    </property>
+   </widget>
+   <widget class="QLCDNumber" name="train_interval_current">
+    <property name="geometry">
+     <rect>
+      <x>220</x>
+      <y>50</y>
+      <width>31</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <property name="digitCount">
+     <number>2</number>
+    </property>
+    <property name="segmentStyle">
+     <enum>QLCDNumber::Flat</enum>
+    </property>
+   </widget>
+   <widget class="QSlider" name="stay_duration_slider">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>35</y>
+      <width>111</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="minimum">
+     <number>0</number>
+    </property>
+    <property name="maximum">
+     <number>30</number>
+    </property>
+    <property name="pageStep">
+     <number>5</number>
+    </property>
+    <property name="value">
+     <number>15</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="stay_duration_text">
+    <property name="geometry">
+     <rect>
+      <x>340</x>
+      <y>10</y>
+      <width>101</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>12</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Stay duration</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="stay_duration_min_max">
+    <property name="geometry">
+     <rect>
+      <x>330</x>
+      <y>50</y>
+      <width>141</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>0               30</string>
+    </property>
+   </widget>
+   <widget class="QLCDNumber" name="stay_duration_current">
+    <property name="geometry">
+     <rect>
+      <x>370</x>
+      <y>50</y>
+      <width>31</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <property name="digitCount">
+     <number>2</number>
+    </property>
+    <property name="segmentStyle">
+     <enum>QLCDNumber::Flat</enum>
+    </property>
+   </widget>
    <zorder>Background</zorder>
    <zorder>out_cd_counter</zorder>
-   <zorder>multiplier_spinbox</zorder>
-   <zorder>execute_button</zorder>
    <zorder>multiplier_text</zorder>
    <zorder>timer</zorder>
    <zorder>clock</zorder>
-   <zorder>train_interval_spinbox</zorder>
    <zorder>train_interval_text</zorder>
    <zorder>in_waiting_list</zorder>
+   <zorder>multiplier_slider</zorder>
+   <zorder>train_interval_slider</zorder>
+   <zorder>multiplier_min_max</zorder>
+   <zorder>train_interval_min_max</zorder>
+   <zorder>multiplier_current</zorder>
+   <zorder>train_interval_current</zorder>
+   <zorder>stay_duration_slider</zorder>
+   <zorder>stay_duration_text</zorder>
+   <zorder>stay_duration_min_max</zorder>
+   <zorder>stay_duration_current</zorder>
    <zorder>start_background</zorder>
    <zorder>start_button</zorder>
   </widget>
