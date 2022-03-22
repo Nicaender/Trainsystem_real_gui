@@ -59,9 +59,12 @@ private:
     std::deque<Train*> incoming_train;
     std::deque<int> outcoming_train_pos;
 
+    void left_initialization();
     void right_initialization();
+    void right_hand_initialization();
     void mine_initialization();
     void platform_initialization();
+    void platform_hand_initialization();
 };
 
 #endif // GATE_IN_MANAGER_H
