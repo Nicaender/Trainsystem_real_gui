@@ -64,6 +64,7 @@ private:
     void right_initialization();
     void right_hand_initialization();
     void mine_initialization();
+    void mine_hand_initialization();
     void platform_initialization();
     void platform_hand_initialization();
 

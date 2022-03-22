@@ -6,32 +6,30 @@ Gate_In_Manager::Gate_In_Manager(QObject *parent) : QThread(parent)
         for(int j = 0; j < MAX_X; j++)
             this->map[i][j] = nullptr;
 
-    this->right_initialization();
-    this->platform_initialization();
     this->mine_initialization();
-    this->right_hand_initialization();
+    this->left_initialization();
+    this->platform_initialization();
+    this->right_initialization();
+    this->mine_hand_initialization();
+    this->left_hand_initialization();
     this->platform_hand_initialization();
+    this->right_hand_initialization();
 
     std::string cout;
     for(int i = 0; i < MAX_Y; i++)
     {
         for(int j = 0; j < MAX_X; j++)
         {
-            if(this->map[i][j] && this->map[i][j]->getType() == RAIL)
+            if(this->map[i][j])
             {
                 if(this->map[i][j]->getLeft_list().size() > 0  && this->map[i][j]->getLeft_list().at(0))
                     cout.append("<-");
-                cout.append("R");
-                if(this->map[i][j]->getRight_list().size() > 0  && this->map[i][j]->getRight_list().at(0))
-                    cout.append("-> ");
-            }
-            else if(this->map[i][j] && this->map[i][j]->getType() == MINE)
-                cout.append("Mine");
-            else if(this->map[i][j] && this->map[i][j]->getType() == PLATFORM)
-            {
-                if(this->map[i][j]->getLeft_list().size() > 0  && this->map[i][j]->getLeft_list().at(0))
-                    cout.append("<-");
-                cout.append("P");
+                if(this->map[i][j]->getType() == RAIL)
+                    cout.append("R");
+                if(this->map[i][j]->getType() == MINE)
+                    cout.append("M");
+                if(this->map[i][j]->getType() == PLATFORM)
+                    cout.append("P");
                 if(this->map[i][j]->getRight_list().size() > 0  && this->map[i][j]->getRight_list().at(0))
                     cout.append("-> ");
             }
@@ -193,6 +191,155 @@ void Gate_In_Manager::left_hand_initialization()
         this->map[0][i]->setLeft_list(this->map[0][i-1]);
         this->map[2][i]->setLeft_list(this->map[2][i-1]);
     }
+    // Line III
+    for(int i = 2; i < 7; i++)
+    {
+        this->map[4][i]->setLeft_list(this->map[4][i-1]);
+        this->map[4][i]->setRight_list(this->map[4][i+1]);
+    }
+    for(int i = 19; i < 22; i++)
+    {
+        this->map[4][i]->setLeft_list(this->map[4][i-1]);
+        this->map[4][i]->setRight_list(this->map[4][i+1]);
+    }
+    // Line IV
+    for(int i = 2; i < 22; i++)
+    {
+        this->map[6][i]->setLeft_list(this->map[6][i-1]);
+        this->map[6][i]->setRight_list(this->map[6][i+1]);
+    }
+    // Line V
+    for(int i = 10; i < 22; i++)
+    {
+        this->map[8][i]->setLeft_list(this->map[8][i-1]);
+        this->map[8][i]->setRight_list(this->map[8][i+1]);
+    }
+    //Line VI
+    for(int i = 2; i < 22; i++){
+        this->map[10][i]->setLeft_list(this->map[10][i-1]);
+        this->map[10][i]->setRight_list(this->map[10][i+1]);
+    }
+
+    // Line VII
+    for(int i = 2; i < 22; i++){
+        this->map[12][i]->setLeft_list(this->map[12][i-1]);
+        this->map[12][i]->setRight_list(this->map[12][i+1]);
+    }
+
+    // Line VIII
+    for(int i = 16;i < 22; i++){
+        this->map[14][i]->setLeft_list(this->map[14][i-1]);
+        this->map[14][i]->setRight_list(this->map[14][i+1]);
+    }
+
+    // Branches
+    // Line I
+    this->map[0][10]->setLeft_list(this->map[1][9]); // kiri bawah
+    this->map[0][10]->setRight_list(this->map[1][11]); // kanan bawah
+    // Line II
+    this->map[2][5]->setLeft_list(this->map[3][4]); // kiri bawah
+    this->map[2][5]->setRight_list(this->map[3][6]); // kanan bawah
+    this->map[2][8]->setRight_list(this->map[1][9]); // kanan atas
+    this->map[2][12]->setLeft_list(this->map[1][11]); // kiri atas
+    this->map[2][12]->setRight_list(this->map[3][13]); // kanan bawah
+    this->map[2][16]->setRight_list(this->map[3][17]); // kanan bawah
+    // Line III
+    this->map[4][3]->setRight_list(this->map[3][4]); // kanan atas
+    this->map[4][7]->setLeft_list(this->map[4][6]); // kiri kiri
+    this->map[4][7]->setLeft_list(this->map[3][6]); // kiri atas
+    this->map[4][7]->setRight_list(this->map[5][8]); // kanan bawah
+    this->map[4][14]->setLeft_list(this->map[3][13]); // kiri atas
+    this->map[4][14]->setRight_list(this->map[5][15]); // kanan bawah
+    this->map[4][18]->setLeft_list(this->map[3][17]); // kiri atas
+    this->map[4][18]->setRight_list(this->map[5][19]); // kanan bawah
+    this->map[4][20]->setLeft_list(this->map[5][19]); // kiri bawah
+    // Line IV
+    this->map[6][7]->setLeft_list(this->map[5][6]); // kiri atas
+    this->map[6][7]->setRight_list(this->map[7][8]); // kanan bawah
+    this->map[6][9]->setLeft_list(this->map[5][8]); // kiri atas
+    this->map[6][9]->setRight_list(this->map[7][10]); // kanan bawah
+    this->map[6][16]->setLeft_list(this->map[5][15]); // kiri atas
+    this->map[6][18]->setLeft_list(this->map[7][17]); // kiri bawah
+    this->map[6][18]->setRight_list(this->map[5][19]); // kanan atas
+    // Line V
+    this->map[8][9]->setLeft_list(this->map[7][8]); // kiri atas
+    this->map[8][9]->setRight_list(this->map[8][10]); // kanan kanan
+    this->map[8][9]->setRight_list(this->map[7][10]); // kanan atas
+    this->map[8][11]->setLeft_list(this->map[7][10]); // kiri atas
+    this->map[8][11]->setRight_list(this->map[9][12]); // kanan bawah
+    this->map[8][16]->setLeft_list(this->map[9][15]); // kiri bawah
+    this->map[8][16]->setRight_list(this->map[7][17]); // kanan atas
+    // Line VI
+    this->map[10][11]->setLeft_list(this->map[9][10]);
+    this->map[10][11]->setRight_list(this->map[11][12]);
+    this->map[10][13]->setRight_list(this->map[11][14]);
+    this->map[10][13]->setLeft_list(this->map[9][12]);
+    this->map[10][14]->setLeft_list(this->map[9][15]);
+    this->map[10][17]->setLeft_list(this->map[11][16]);
+    // Line VII
+    this->map[12][13]->setLeft_list(this->map[11][12]);
+    this->map[12][13]->setRight_list(this->map[13][14]);
+    this->map[12][15]->setLeft_list(this->map[11][14]);
+    this->map[12][15]->setRight_list(this->map[11][16]);
+    this->map[12][15]->setRight_list(this->map[13][16]);
+    // Line VIII
+    this->map[14][17]->setLeft_list(this->map[13][16]);
+    this->map[14][15]->setRight_list(this->map[14][16]);
+    this->map[14][15]->setLeft_list(this->map[13][14]);
+
+    // 2nd Branches
+    // Line I-II
+    this->map[1][9]->setLeft_list(this->map[2][8]); // kiri bawah
+    this->map[1][9]->setRight_list(this->map[0][10]); // kanan atas
+    this->map[1][11]->setLeft_list(this->map[0][10]); // kiri atas
+    this->map[1][11]->setRight_list(this->map[2][12]); // kanan bawah
+    // Line II-III
+    this->map[3][4]->setLeft_list(this->map[4][3]); // kiri bawah
+    this->map[3][4]->setRight_list(this->map[2][5]); // kanan atas
+    this->map[3][6]->setLeft_list(this->map[2][5]); // kiri atas
+    this->map[3][6]->setRight_list(this->map[4][7]); // kanan bawah
+    this->map[3][13]->setLeft_list(this->map[2][12]); // kiri atas
+    this->map[3][13]->setRight_list(this->map[4][14]); // kanan bawah
+    this->map[3][17]->setLeft_list(this->map[2][16]); // kiri atas
+    this->map[3][17]->setRight_list(this->map[4][18]); // kanan bawah
+    // Line III-IV
+    this->map[5][6]->setLeft_list(this->map[4][5]); // kiri atas
+    this->map[5][6]->setRight_list(this->map[6][7]); // kanan bawah
+    this->map[5][8]->setLeft_list(this->map[4][7]); // kiri atas
+    this->map[5][8]->setRight_list(this->map[6][9]); // kanan bawah
+    this->map[5][15]->setLeft_list(this->map[4][14]); // kiri atas
+    this->map[5][15]->setRight_list(this->map[6][16]); // kanan bawah
+    this->map[5][19]->setLeft_list(this->map[6][18]); // kiri bawah
+    this->map[5][19]->setRight_list(this->map[4][20]); // kanan atas
+    // Line IV-V
+    this->map[7][8]->setLeft_list(this->map[6][7]); // kiri atas
+    this->map[7][8]->setRight_list(this->map[8][9]); // kanan bawah
+    this->map[7][10]->setLeft_list(this->map[6][9]); // kiri atas
+    this->map[7][10]->setRight_list(this->map[8][11]); // kanan bawah
+    this->map[7][17]->setLeft_list(this->map[8][16]); // kiri bawah
+    this->map[7][17]->setRight_list(this->map[6][18]); // kanan atas
+    // Line V-VI
+    this->map[9][10]->setLeft_list(this->map[8][9]); // kiri atas
+    this->map[9][10]->setRight_list(this->map[10][11]); // kanan bawah
+    this->map[9][12]->setLeft_list(this->map[8][11]); // kiri atas
+    this->map[9][12]->setRight_list(this->map[10][13]); // kanan bawah
+    this->map[9][15]->setLeft_list(this->map[10][14]); // kiri bawah
+    this->map[9][15]->setRight_list(this->map[8][16]); // kanan atas
+    // Line VI - VII
+    this->map[11][12]->setLeft_list(this->map[10][11]);
+    this->map[11][12]->setRight_list(this->map[12][13]);
+    this->map[11][14]->setLeft_list(this->map[10][13]);
+    this->map[11][14]->setRight_list(this->map[12][15]);
+    this->map[11][16]->setLeft_list(this->map[12][15]);
+    this->map[11][16]->setRight_list(this->map[10][17]);
+    // Line VII - VIII
+    this->map[13][14]->setLeft_list(this->map[12][13]);
+    this->map[13][14]->setRight_list(this->map[14][15]);
+    this->map[13][16]->setLeft_list(this->map[12][15]);
+    this->map[13][16]->setRight_list(this->map[14][17]);
+
+    // Mine entrance
+    // Group 1
     this->map[0][1]->setRight_list(this->map[0][2]);
     this->map[0][1]->setLeft_list(this->map[1][0]);
     this->map[0][1]->setLeft_list(this->map[2][0]);
@@ -201,41 +348,26 @@ void Gate_In_Manager::left_hand_initialization()
     this->map[2][1]->setLeft_list(this->map[1][0]);
     this->map[2][1]->setLeft_list(this->map[2][0]);
     this->map[2][1]->setLeft_list(this->map[3][0]);
-    //Line III
-    for(int i = 2; i < 6; i++)
-    {
-        this->map[4][i]->setLeft_list(this->map[2][i-1]);
-        this->map[4][i]->setRight_list(this->map[2][i+1]);
-    }
-
-    // Branches
-    // Line I
-    this->map[0][10]->setLeft_list(this->map[1][9]);
-    this->map[0][10]->setRight_list(this->map[1][11]);
-    // Line II
-    this->map[2][12]->setLeft_list(this->map[1][11]);
-    this->map[2][8]->setRight_list(this->map[1][9]);
-
-    // 2nd Branches
-    // Line I-II
-    this->map[1][9]->setLeft_list(this->map[2][8]);
-    this->map[1][9]->setRight_list(this->map[0][10]);
-    this->map[1][11]->setLeft_list(this->map[0][10]);
-    this->map[1][11]->setRight_list(this->map[2][12]);
-    // Line II-III
-    this->map[3][4]->setLeft_list(this->map[4][3]);
-    this->map[3][4]->setRight_list(this->map[2][5]);
-    this->map[3][6]->setLeft_list(this->map[2][5]);
-    this->map[3][6]->setRight_list(this->map[4][7]);
-    this->map[3][13]->setLeft_list(this->map[2][12]);
-    this->map[3][13]->setRight_list(this->map[4][14]);
-    this->map[3][17]->setLeft_list(this->map[2][16]);
-    this->map[3][17]->setRight_list(this->map[4][18]);
+    // Group 2
+    this->map[4][1]->setRight_list(this->map[4][2]);
+    this->map[4][1]->setLeft_list(this->map[5][0]);
+    this->map[4][1]->setLeft_list(this->map[6][0]);
+    this->map[4][1]->setLeft_list(this->map[7][0]);
+    this->map[6][1]->setRight_list(this->map[6][2]);
+    this->map[6][1]->setLeft_list(this->map[5][0]);
+    this->map[6][1]->setLeft_list(this->map[6][0]);
+    this->map[6][1]->setLeft_list(this->map[7][0]);
+    // Group 3
+    this->map[10][1]->setRight_list(this->map[10][2]);
+    this->map[10][1]->setLeft_list(this->map[11][0]);
+    this->map[10][1]->setLeft_list(this->map[12][0]);
+    this->map[12][1]->setRight_list(this->map[12][2]);
+    this->map[12][1]->setLeft_list(this->map[11][0]);
+    this->map[12][1]->setLeft_list(this->map[12][0]);
 }
 
 void Gate_In_Manager::right_initialization()
 {
-    // Creating rail
     // Line I & II
     for(int i = 23; i < MAX_X; i++) // dari 23 -> 38
     {
@@ -488,6 +620,31 @@ void Gate_In_Manager::mine_initialization()
         this->map[11+counter][0] = tmp;
         counter++;
     }
+}
+
+void Gate_In_Manager::mine_hand_initialization()
+{
+        // Group 1
+        this->map[1][0]->setRight_list(this->map[0][1]);
+        this->map[1][0]->setRight_list(this->map[2][1]);
+        this->map[2][0]->setRight_list(this->map[0][1]);
+        this->map[2][0]->setRight_list(this->map[2][1]);
+        this->map[3][0]->setRight_list(this->map[0][1]);
+        this->map[3][0]->setRight_list(this->map[2][1]);
+
+        // Group 2
+        this->map[5][0]->setRight_list(this->map[4][1]);
+        this->map[5][0]->setRight_list(this->map[6][1]);
+        this->map[6][0]->setRight_list(this->map[4][1]);
+        this->map[6][0]->setRight_list(this->map[6][1]);
+        this->map[7][0]->setRight_list(this->map[4][1]);
+        this->map[7][0]->setRight_list(this->map[6][1]);
+
+        // Group 3
+        this->map[11][0]->setRight_list(this->map[10][1]);
+        this->map[11][0]->setRight_list(this->map[12][1]);
+        this->map[12][0]->setRight_list(this->map[10][1]);
+        this->map[12][0]->setRight_list(this->map[12][1]);
 }
 
 void Gate_In_Manager::platform_initialization()
