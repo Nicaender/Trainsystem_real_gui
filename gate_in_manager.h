@@ -8,8 +8,9 @@
 #include <QMutex>
 #include <QDebug>
 
-#define Y 15
-#define X 39
+#define MAX_Y 15
+#define MAX_X 39
+#define PLATFORM_SUM 5
 
 class Gate_In_Manager : public QThread
 {
@@ -48,9 +49,14 @@ private:
     int multiplier = 1;
     int timer = 0;
 
-    Infrastructure* map[Y][X];
+    Infrastructure* map[MAX_Y][MAX_X];
+    Infrastructure* in = map[0][MAX_X-1];
+    Infrastructure* out = map[2][MAX_X-1];
+
     std::deque<Train*> incoming_train;
     std::deque<int> outcoming_train_pos;
+
+    void right_initalization();
 };
 
 #endif // GATE_IN_MANAGER_H
