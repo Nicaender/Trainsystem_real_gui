@@ -1,5 +1,6 @@
 #include "gate_in_manager.h"
 
+// commit from branch farouq
 Gate_In_Manager::Gate_In_Manager(QObject *parent) : QThread(parent)
 {
     for(int i = 0; i < MAX_Y; i++)
