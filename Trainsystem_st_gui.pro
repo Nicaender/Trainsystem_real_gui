@@ -9,15 +9,21 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    Train.cpp \
+    animation.cpp \
+    gate_in_manager.cpp \
+    infrastructure.cpp \
     main.cpp \
     mainwindow.cpp \
-    traingenerator.cpp
+    train.cpp \
+    train_maker.cpp
 
 HEADERS += \
-    Train.h \
+    animation.h \
+    gate_in_manager.h \
+    infrastructure.h \
     mainwindow.h \
-    traingenerator.h
+    train.h \
+    train_maker.h
 
 FORMS += \
     mainwindow.ui
@@ -26,3 +32,6 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+RESOURCES += \
+    Images.qrc
