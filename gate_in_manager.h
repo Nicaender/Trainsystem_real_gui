@@ -10,7 +10,7 @@
 
 #define MAX_Y 15
 #define MAX_X 39
-#define PLATFORM_SUM 5
+#define PLATFORM_SUM 8
 
 class Gate_In_Manager : public QThread
 {
@@ -53,12 +53,15 @@ private:
     Infrastructure* in = map[0][MAX_X-1];
     Infrastructure* out = map[2][MAX_X-1];
     std::vector<Infrastructure*> Mine_group[3];
+    Infrastructure* platform_list[PLATFORM_SUM];
+
 
     std::deque<Train*> incoming_train;
     std::deque<int> outcoming_train_pos;
 
     void right_initialization();
     void mine_initialization();
+    void platform_initialization();
 };
 
 #endif // GATE_IN_MANAGER_H

@@ -8,6 +8,7 @@ Gate_In_Manager::Gate_In_Manager(QObject *parent) : QThread(parent)
 
     this->right_initialization();
     this->mine_initialization();
+    this->platform_initialization();
     std::string cout;
     for(int i = 0; i < MAX_Y; i++)
     {
@@ -17,6 +18,8 @@ Gate_In_Manager::Gate_In_Manager(QObject *parent) : QThread(parent)
                 cout.append("Rail");
             else if(this->map[i][j] && this->map[i][j]->getType() == MINE)
                 cout.append("Mine");
+            else if(this->map[i][j] && this->map[i][j]->getType() == PLATFORM)
+                cout.append("Plat");
             else
                 cout.append("    ");
         }
@@ -336,6 +339,15 @@ void Gate_In_Manager::mine_initialization()
         this->Mine_group[2].push_back(tmp);
         this->map[11+counter][0] = tmp;
         counter++;
+    }
+}
+
+void Gate_In_Manager::platform_initialization()
+{
+    for(int i = 0; i < PLATFORM_SUM; i++)
+    {
+        this->platform_list[i] = new Infrastructure(PLATFORM);
+        this->map[0 + 2*i][22] = this->platform_list[i];
     }
 }
 
