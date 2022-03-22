@@ -3,12 +3,13 @@
 
 #include <QThread>
 #include <QObject>
-#include <train.h>
+#include <infrastructure.h>
 #include <queue>
 #include <QMutex>
 #include <QDebug>
 
-#define PLATFORM_SUM 5
+#define Y 15
+#define X 39
 
 class Gate_In_Manager : public QThread
 {
@@ -20,6 +21,8 @@ public:
     void setMultiplier(int newMultiplier);
 
     void setGate_out_cooldown(int newGate_out_cooldown);
+
+    enum {RAIL, PLATFORM, MINE};
 
 signals:
     void train_in_entrance(int,Train*);
@@ -45,7 +48,7 @@ private:
     int multiplier = 1;
     int timer = 0;
 
-    Train* platforms[PLATFORM_SUM];
+    Infrastructure* map[Y][X];
     std::deque<Train*> incoming_train;
     std::deque<int> outcoming_train_pos;
 };

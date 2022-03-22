@@ -2,8 +2,9 @@
 
 Gate_In_Manager::Gate_In_Manager(QObject *parent) : QThread(parent)
 {
-    for(int i = 0; i < PLATFORM_SUM; i++)
-        platforms[i] = nullptr;
+    for(int i = 0; i < Y; i++)
+        for(int j = 0; j < X; j++)
+            this->map[i][j] = nullptr;
 }
 
 void Gate_In_Manager::run()

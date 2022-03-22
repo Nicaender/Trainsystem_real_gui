@@ -11,6 +11,7 @@ CONFIG += c++11
 SOURCES += \
     animation.cpp \
     gate_in_manager.cpp \
+    infrastructure.cpp \
     main.cpp \
     mainwindow.cpp \
     train.cpp \
@@ -19,6 +20,7 @@ SOURCES += \
 HEADERS += \
     animation.h \
     gate_in_manager.h \
+    infrastructure.h \
     mainwindow.h \
     train.h \
     train_maker.h
