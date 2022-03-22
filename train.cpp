@@ -1,9 +1,8 @@
 #include "train.h"
 
-Train::Train(int id, int stop)
+Train::Train(int id)
 {
     this->id = id;
-    this->stop_duration = stop;
 }
 
 void Train::stop_reduction()

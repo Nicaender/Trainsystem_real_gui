@@ -52,11 +52,13 @@ private:
     Infrastructure* map[MAX_Y][MAX_X];
     Infrastructure* in = map[0][MAX_X-1];
     Infrastructure* out = map[2][MAX_X-1];
+    std::vector<Infrastructure*> Mine_group[3];
 
     std::deque<Train*> incoming_train;
     std::deque<int> outcoming_train_pos;
 
-    void right_initalization();
+    void right_initialization();
+    void mine_initialization();
 };
 
 #endif // GATE_IN_MANAGER_H

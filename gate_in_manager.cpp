@@ -6,14 +6,17 @@ Gate_In_Manager::Gate_In_Manager(QObject *parent) : QThread(parent)
         for(int j = 0; j < MAX_X; j++)
             this->map[i][j] = nullptr;
 
-    this->right_initalization();
+    this->right_initialization();
+    this->mine_initialization();
     std::string cout;
     for(int i = 0; i < MAX_Y; i++)
     {
         for(int j = 0; j < MAX_X; j++)
         {
-            if(this->map[i][j])
+            if(this->map[i][j] && this->map[i][j]->getType() == RAIL)
                 cout.append("Rail");
+            else if(this->map[i][j] && this->map[i][j]->getType() == MINE)
+                cout.append("Mine");
             else
                 cout.append("    ");
         }
@@ -143,7 +146,7 @@ int Gate_In_Manager::check_free_platform() // help function - check available pl
     return -1;
 }
 
-void Gate_In_Manager::right_initalization()
+void Gate_In_Manager::right_initialization()
 {
     // Line I & II
     for(int i = 23; i < MAX_X; i++) // dari 23 -> 38
@@ -306,6 +309,34 @@ void Gate_In_Manager::right_initalization()
     this->map[13][24] = new Infrastructure(RAIL);
     this->map[13][24]->setLeft_list(this->map[14][23]); // kiri bawah
     this->map[13][24]->setRight_list(this->map[12][25]); // kanan atas
+}
+
+void Gate_In_Manager::mine_initialization()
+{
+    int counter = 0;
+    while(counter < 3)
+    {
+        Infrastructure* tmp = new Infrastructure(MINE);
+        this->Mine_group[0].push_back(tmp);
+        this->map[1+counter][0] = tmp;
+        counter++;
+    }
+    counter = 0;
+    while(counter < 3)
+    {
+        Infrastructure* tmp = new Infrastructure(MINE);
+        this->Mine_group[1].push_back(tmp);
+        this->map[5+counter][0] = tmp;
+        counter++;
+    }
+    counter = 0;
+    while(counter < 2)
+    {
+        Infrastructure* tmp = new Infrastructure(MINE);
+        this->Mine_group[2].push_back(tmp);
+        this->map[11+counter][0] = tmp;
+        counter++;
+    }
 }
 
 void Gate_In_Manager::setMultiplier(int newMultiplier)

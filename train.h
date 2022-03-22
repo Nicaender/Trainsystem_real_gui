@@ -5,7 +5,7 @@
 class Train
 {
 public:
-    Train(int id, int stop);
+    Train(int id);
 
     void stop_reduction();
 
