@@ -348,6 +348,17 @@ void Gate_In_Manager::platform_initialization()
     {
         this->platform_list[i] = new Infrastructure(PLATFORM);
         this->map[0 + 2*i][22] = this->platform_list[i];
+        if(i < 2)
+        {
+            this->platform_list[i]->setPossible_mine_group(0);
+            this->platform_list[i]->setPossible_mine_group(1);
+        }
+        else
+        {
+            this->platform_list[i]->setPossible_mine_group(0);
+            this->platform_list[i]->setPossible_mine_group(1);
+            this->platform_list[i]->setPossible_mine_group(2);
+        }
     }
 }
 

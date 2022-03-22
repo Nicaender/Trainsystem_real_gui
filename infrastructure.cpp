@@ -7,6 +7,8 @@ Infrastructure::Infrastructure(int new_type)
         this->stay_duration = 10;
     else if(this->type == MINE)
         this->stay_duration = 115;
+
+    this->possible_mine_group = new std::vector <int>;
 }
 
 int Infrastructure::getType() const
@@ -57,4 +59,17 @@ Train *Infrastructure::getCurrent_train() const
 void Infrastructure::setCurrent_train(Train *newCurrent_train)
 {
     current_train = newCurrent_train;
+}
+
+const std::vector<int> *Infrastructure::getPossible_mine_group() const
+{
+    if(this->type == PLATFORM)
+        return this->possible_mine_group;
+    return nullptr;
+}
+
+void Infrastructure::setPossible_mine_group(const int &newPossible_mine_group)
+{
+    if(this->type == PLATFORM)
+        this->possible_mine_group->push_back(newPossible_mine_group);
 }

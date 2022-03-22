@@ -24,6 +24,9 @@ public:
     Train *getCurrent_train() const;
     void setCurrent_train(Train *newCurrent_train);
 
+    const std::vector<int> *getPossible_mine_group() const;
+    void setPossible_mine_group(const int &newPossible_mine_group);
+
 private:
     enum {RAIL, PLATFORM, MINE};
     int type = -1;
@@ -32,6 +35,7 @@ private:
     std::vector<Infrastructure*> left_list;
     std::vector<Infrastructure*> right_list;
     Train* current_train = nullptr;
+    std::vector <int>* possible_mine_group;
 };
 
 #endif // INFRASTRUCTURE_H
