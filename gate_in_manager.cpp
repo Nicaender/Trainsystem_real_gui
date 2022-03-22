@@ -64,20 +64,20 @@ void Gate_In_Manager::run()
             train_out_cooldown = -1;
 
         // kurangin stay duration setiap kereta di platform
-//        for(int i = 0; i < PLATFORM_SUM; i++)
-//        {
-//            if(platforms[i])
-//            {
-//                if(platforms[i]->getStop_duration() > 0)
-//                    platforms[i]->stop_reduction();
-//                if(platforms[i]->getStop_duration() == 0 && platforms[i]->getOut_waiting_list() == false)
-//                {
-//                    outcoming_train_pos.push_back(i);
-//                    platforms[i]->setOut_waiting_list(true);
-//                    emit change_color_to_red(i);
-//                }
-//            }
-//        }
+        //        for(int i = 0; i < PLATFORM_SUM; i++)
+        //        {
+        //            if(platforms[i])
+        //            {
+        //                if(platforms[i]->getStop_duration() > 0)
+        //                    platforms[i]->stop_reduction();
+        //                if(platforms[i]->getStop_duration() == 0 && platforms[i]->getOut_waiting_list() == false)
+        //                {
+        //                    outcoming_train_pos.push_back(i);
+        //                    platforms[i]->setOut_waiting_list(true);
+        //                    emit change_color_to_red(i);
+        //                }
+        //            }
+        //        }
 
         // kalo ada kereta yang mau masuk, dan gate in ready, dan ada platform kosong, masukin ke platform
         if(!incoming_train.empty() && gate_in_ready && this->check_free_platform() != -1)
@@ -89,7 +89,7 @@ void Gate_In_Manager::run()
         // kalau ada yang di queue keluar
         if(!outcoming_train_pos.empty() && gate_out_ready)
         {
-//            this->notify_train_exiting_platform(outcoming_train_pos.front(), platforms[outcoming_train_pos.front()]);
+            //            this->notify_train_exiting_platform(outcoming_train_pos.front(), platforms[outcoming_train_pos.front()]);
             gate_out_ready = false;
         }
 
@@ -130,8 +130,8 @@ void Gate_In_Manager::setGate_out_cooldown(int newGate_out_cooldown)
 
 void Gate_In_Manager::notified_to_remove_train(int pos) // finished - delete the train after the train leaves the station
 {
-//    delete platforms[pos];
-//    platforms[pos] = nullptr;
+    //    delete platforms[pos];
+    //    platforms[pos] = nullptr;
     train_out_cooldown = gate_out_cooldown;
     emit update_cooldown_canvas(train_out_cooldown);
     return;
@@ -149,7 +149,7 @@ void Gate_In_Manager::on_new_train_notified(Train* input) // finished - put a tr
 
 void Gate_In_Manager::set_train_on_platform(int pos, Train* input) // help function - akan dipanggil oleh animation kalau sudah sampai kesana
 {
-//    platforms[pos] = input;
+    //    platforms[pos] = input;
     gate_in_ready = true;
     return;
 }
@@ -157,19 +157,80 @@ void Gate_In_Manager::set_train_on_platform(int pos, Train* input) // help funct
 int Gate_In_Manager::check_free_platform() // help function - check available platform
 {
     // cari platform yang kosong
-//    for(int i = 0; i < PLATFORM_SUM; i++)
-//    {
-//        if(!platforms[i])
-//        {
-//            return i;
-//        }
-//    }
+    //    for(int i = 0; i < PLATFORM_SUM; i++)
+    //    {
+    //        if(!platforms[i])
+    //        {
+    //            return i;
+    //        }
+    //    }
     return -1;
 }
 
 void Gate_In_Manager::left_initialization()
 {
+    int index_y = 0;
+    while(!fill_left.empty())
+    {
+        int tmp = fill_left.front();
+        fill_left.pop_front();
+        if(tmp == -1)
+        {
+            index_y++;
+            continue;
+        }
+        this->map[index_y][tmp] = new Infrastructure(RAIL);
+    }
+}
 
+void Gate_In_Manager::left_hand_initialization()
+{
+    // Line I & II
+    for(int i = 2; i < 22; i++)
+    {
+        this->map[0][i]->setRight_list(this->map[0][i+1]);
+        this->map[2][i]->setRight_list(this->map[2][i+1]);
+        this->map[0][i]->setLeft_list(this->map[0][i-1]);
+        this->map[2][i]->setLeft_list(this->map[2][i-1]);
+    }
+    this->map[0][1]->setRight_list(this->map[0][2]);
+    this->map[0][1]->setLeft_list(this->map[1][0]);
+    this->map[0][1]->setLeft_list(this->map[2][0]);
+    this->map[0][1]->setLeft_list(this->map[3][0]);
+    this->map[2][1]->setRight_list(this->map[2][2]);
+    this->map[2][1]->setLeft_list(this->map[1][0]);
+    this->map[2][1]->setLeft_list(this->map[2][0]);
+    this->map[2][1]->setLeft_list(this->map[3][0]);
+    //Line III
+    for(int i = 2; i < 6; i++)
+    {
+        this->map[4][i]->setLeft_list(this->map[2][i-1]);
+        this->map[4][i]->setRight_list(this->map[2][i+1]);
+    }
+
+    // Branches
+    // Line I
+    this->map[0][10]->setLeft_list(this->map[1][9]);
+    this->map[0][10]->setRight_list(this->map[1][11]);
+    // Line II
+    this->map[2][12]->setLeft_list(this->map[1][11]);
+    this->map[2][8]->setRight_list(this->map[1][9]);
+
+    // 2nd Branches
+    // Line I-II
+    this->map[1][9]->setLeft_list(this->map[2][8]);
+    this->map[1][9]->setRight_list(this->map[0][10]);
+    this->map[1][11]->setLeft_list(this->map[0][10]);
+    this->map[1][11]->setRight_list(this->map[2][12]);
+    // Line II-III
+    this->map[3][4]->setLeft_list(this->map[4][3]);
+    this->map[3][4]->setRight_list(this->map[2][5]);
+    this->map[3][6]->setLeft_list(this->map[2][5]);
+    this->map[3][6]->setRight_list(this->map[4][7]);
+    this->map[3][13]->setLeft_list(this->map[2][12]);
+    this->map[3][13]->setRight_list(this->map[4][14]);
+    this->map[3][17]->setLeft_list(this->map[2][16]);
+    this->map[3][17]->setRight_list(this->map[4][18]);
 }
 
 void Gate_In_Manager::right_initialization()

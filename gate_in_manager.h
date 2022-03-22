@@ -60,11 +60,17 @@ private:
     std::deque<int> outcoming_train_pos;
 
     void left_initialization();
+    void left_hand_initialization();
     void right_initialization();
     void right_hand_initialization();
     void mine_initialization();
     void platform_initialization();
     void platform_hand_initialization();
+
+    // Help attributes
+    std::deque<int> fill_left = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,-1,9,11,-1,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,-1,4,6,13,17,-1,1,2,3,4,5,6,7,14,18,19,20,21,-1,6,8,15,19,-1,
+                                 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,-1,8,10,17,-1,9,10,11,12,13,14,15,16,17,18,19,20,21,-1,10,12,15,-1,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,-1,
+                                 12,14,16,-1,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,-1,14,16,-1,15,16,17,18,19,20,21};
 };
 
 #endif // GATE_IN_MANAGER_H
