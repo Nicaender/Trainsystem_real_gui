@@ -18,6 +18,7 @@ Gate_In_Manager::Gate_In_Manager(QObject *parent) : QThread(parent)
     std::deque<Infrastructure*> jalan = this->navigate(platform_list[0], Mine_group[1].at(0), LEFT);
 
     std::string cout;
+    bool ketemu = false;
     for(int i = 0; i < MAX_Y; i++)
     {
         for(int j = 0; j < MAX_X; j++)
@@ -26,11 +27,16 @@ Gate_In_Manager::Gate_In_Manager(QObject *parent) : QThread(parent)
             {
                 if(this->map[i][j] == jalan[k])
                 {
-                    cout.append("-");
+                    ketemu = true;
+                    break;
+
                 }
-                else
-                    cout.append(" ");
             }
+            if(ketemu)
+                cout.append("-");
+            else
+                cout.append(" ");
+            ketemu = false;
 //            if(this->map[i][j])
 //            {
 //                if(this->map[i][j]->getLeft_list().size() > 0  && this->map[i][j]->getLeft_list().at(0))
