@@ -15,33 +15,41 @@ Gate_In_Manager::Gate_In_Manager(QObject *parent) : QThread(parent)
     this->platform_hand_initialization();
     this->right_hand_initialization();
 
+    std::deque<Infrastructure*> jalan = this->navigate(platform_list[0], Mine_group[1].at(0), LEFT);
+
     std::string cout;
     for(int i = 0; i < MAX_Y; i++)
     {
         for(int j = 0; j < MAX_X; j++)
         {
-            if(this->map[i][j])
+            for(unsigned int k = 0; k < jalan.size(); k++)
             {
-                if(this->map[i][j]->getLeft_list().size() > 0  && this->map[i][j]->getLeft_list().at(0))
-                    cout.append("<-");
-                if(this->map[i][j]->getType() == RAIL)
-                    cout.append("R");
-                if(this->map[i][j]->getType() == MINE)
-                    cout.append("M");
-                if(this->map[i][j]->getType() == PLATFORM)
-                    cout.append("P");
-                if(this->map[i][j]->getRight_list().size() > 0  && this->map[i][j]->getRight_list().at(0))
-                    cout.append("-> ");
+                if(this->map[i][j] == jalan[k])
+                {
+                    cout.append("-");
+                }
+                else
+                    cout.append(" ");
             }
-            else
-                cout.append("      ");
+//            if(this->map[i][j])
+//            {
+//                if(this->map[i][j]->getLeft_list().size() > 0  && this->map[i][j]->getLeft_list().at(0))
+//                    cout.append("<-");
+//                if(this->map[i][j]->getType() == RAIL)
+//                    cout.append("R");
+//                if(this->map[i][j]->getType() == MINE)
+//                    cout.append("M");
+//                if(this->map[i][j]->getType() == PLATFORM)
+//                    cout.append("P");
+//                if(this->map[i][j]->getRight_list().size() > 0  && this->map[i][j]->getRight_list().at(0))
+//                    cout.append("-> ");
+//            }
+//            else
+//                cout.append("      ");
         }
         qDebug() << QString::fromStdString(cout);
         cout.clear();
     }
-
-    if(this->map[4][22]->getRight_list().at(0))
-        qDebug() << "Ada tetangganya si platform 3";
 }
 
 void Gate_In_Manager::run()
@@ -119,6 +127,86 @@ void Gate_In_Manager::notify_train_exiting_platform(int pos, Train* input) // fi
     emit notify_animation(pos, false, input);
     outcoming_train_pos.pop_front();
     return;
+}
+
+std::deque<Infrastructure *> Gate_In_Manager::navigate(Infrastructure *start_pos, Infrastructure *end_pos, bool direction)
+{
+    Infrastructure *current = start_pos, *before, *backtrack = end_pos;
+    std::vector<std::pair<Infrastructure *, Infrastructure *>> before_after_list;
+    std::stack<Infrastructure *> branches;
+
+    while(current != end_pos)
+    {
+        before = current;
+        if(direction == LEFT)
+        {
+            if(current->getLeft_list().size() > 0)
+            {
+                before_after_list.push_back({current, current->getLeft_list().at(0)});
+                if(current->getLeft_list().size() > 1)
+                for(unsigned int i = 1; i < current->getLeft_list().size(); i++)
+                {
+                    branches.push(current->getLeft_list().at(i));
+                    before_after_list.push_back({current, current->getLeft_list().at(i)});
+                    qDebug() << "Buat cabang";
+                }
+                current = current->getLeft_list().at(0);
+                qDebug() << "Ke kiri";
+            }
+        }
+        else
+        {
+            if(current->getRight_list().size() > 0)
+            {
+                before_after_list.push_back({current, current->getRight_list().at(0)});
+                if(current->getRight_list().size() > 1)
+                for(unsigned int i = 1; i < current->getRight_list().size(); i++)
+                {
+                    branches.push(current->getRight_list().at(i));
+                    before_after_list.push_back({current, current->getRight_list().at(i)});
+                }
+                current = current->getRight_list().at(0);
+            }
+        }
+        if(current->getType() == end_pos->getType() && end_pos->getType() == PLATFORM && current != end_pos)
+        {
+            current = branches.top();
+            branches.pop();
+        }
+        else if(current->getLeft_list().size() > 1 && end_pos->getType() == MINE)
+        {
+            for(unsigned int i = 0; i < current->getLeft_list().size(); i++)
+            {
+                if(current->getLeft_list().at(i) == end_pos)
+                {
+                    before_after_list.push_back({current, current->getLeft_list().at(i)});
+                    current = current->getLeft_list().at(i);
+                    break;
+                }
+            }
+        }
+        if(before == current)
+        {
+            qDebug() << "ke cabang";
+            current = branches.top();
+            branches.pop();
+        }
+    }
+
+    std::deque<Infrastructure *> path;
+
+    for(int i = before_after_list.size() - 1; i >= 0; i--)
+    {
+        if(backtrack == before_after_list[i].second)
+        {
+            path.push_front(backtrack);
+            backtrack = before_after_list[i].first;
+        }
+        if(backtrack == start_pos)
+            break;
+    }
+
+    return path;
 }
 
 void Gate_In_Manager::setGate_out_cooldown(int newGate_out_cooldown)

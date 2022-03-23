@@ -5,8 +5,10 @@
 #include <QObject>
 #include <infrastructure.h>
 #include <queue>
+#include <stack>
 #include <QMutex>
 #include <QDebug>
+#include <utility>
 
 #define MAX_Y 15
 #define MAX_X 39
@@ -24,6 +26,7 @@ public:
     void setGate_out_cooldown(int newGate_out_cooldown);
 
     enum {RAIL, PLATFORM, MINE};
+    enum {LEFT, RIGHT};
 
 signals:
     void train_in_entrance(int,Train*);
@@ -41,6 +44,7 @@ public slots:
 private:
     void notify_train_into_platform(int pos);
     void notify_train_exiting_platform(int pos, Train*);
+    std::deque<Infrastructure*> navigate(Infrastructure* start_pos, Infrastructure* end_pos, bool direction);
 
     int gate_out_cooldown = -1;
     int train_out_cooldown = -1;
