@@ -35,8 +35,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(train_create, SIGNAL(notify_train_incoming(Train*)), gate_in, SLOT(notified_train_incoming(Train*)));
 
-    connect(canvas_animation, SIGNAL(notify_move_train(Infrastructure*)), this, SLOT(notified_move_train(Infrastructure*)));
-    connect(canvas_animation, SIGNAL(notify_train_arrived(Infrastructure*)), gate_in, SLOT(notified_train_arrived(Infrastructure*)));
+    connect(canvas_animation, SIGNAL(notify_move_train(Train*,Infrastructure*)), this, SLOT(notified_move_train(Train*,Infrastructure*)));
+    connect(canvas_animation, SIGNAL(notify_train_arrived(Train*,Infrastructure*, Infrastructure*)), gate_in, SLOT(notified_train_arrived(Train*,Infrastructure*, Infrastructure*)));
 
     connect(gate_in, SIGNAL(notify_color(int,int,int)), this, SLOT(notified_color(int,int,int)));
     connect(gate_in, SIGNAL(notify_train_label_attach(Train*)), this, SLOT(notified_train_label_attach(Train*)));
@@ -82,15 +82,13 @@ void MainWindow::notified_put_train_on_canvas(Train *train_input)
     }
 }
 
-void MainWindow::notified_move_train(Infrastructure *now)
+void MainWindow::notified_move_train(Train* train_input,Infrastructure* now)
 {
-    if(now == nullptr)
-        return;
-    int x = now->getX() - now->getTrain()->getBefore_x();
-    int y = now->getY() - now->getTrain()->getBefore_y();
+    int x = now->getX() - train_input->getBefore_x();
+    int y = now->getY() - train_input->getBefore_y();
     for(unsigned int i = 0; i < PLATFORM_SUM+PLATFORM_SUM; i++)
     {
-        if(this->train_labels[i]->second == now->getTrain())
+        if(this->train_labels[i]->second == train_input)
         {
             this->train_labels[i]->first->move(this->train_labels[i]->first->x() + x*40, this->train_labels[i]->first->y() + y*30);
             return;

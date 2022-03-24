@@ -20,16 +20,15 @@ public:
     void setMultiplier(int newMultiplier);
 
 signals:
-    void notify_train_arrived(Infrastructure*);
-    void notify_move_train(Infrastructure*);
+    void notify_train_arrived(Train*,Infrastructure*, Infrastructure*);
+    void notify_move_train(Train*,Infrastructure*);
 
 public slots:
     void notified_train_depart(std::deque <Infrastructure*>*);
 
 private:
-    std::vector<std::deque<Infrastructure*>> path_list;
-    std::vector<std::deque<Infrastructure*>> copy_path_list;
-    int multiplier = 2;
+    std::vector<std::pair<std::pair<std::deque<Infrastructure *>, std::deque<Infrastructure *>>, Train*>> path_list; // path, full path, train
+    int multiplier = 5;
 };
 
 #endif // ANIMATION_H

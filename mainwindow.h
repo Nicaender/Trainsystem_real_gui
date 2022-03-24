@@ -23,7 +23,7 @@ signals:
 public slots:
     void notified_train_label_attach(Train*);
     void notified_put_train_on_canvas(Train*);
-    void notified_move_train(Infrastructure*);
+    void notified_move_train(Train*,Infrastructure*);
     void notified_train_label_detach(Train*);
     void notified_color(int, int, int);
     void notified_change_color(Train*);

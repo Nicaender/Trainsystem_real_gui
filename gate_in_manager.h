@@ -32,7 +32,7 @@ signals:
     void notify_change_color(Train*);
 
 public slots:
-    void notified_train_arrived(Infrastructure*);
+    void notified_train_arrived(Train*,Infrastructure*, Infrastructure*);
     void notified_train_incoming(Train*);
 
 private:
@@ -42,7 +42,7 @@ private:
 
     Infrastructure *check_free_platform();
     bool gate_in_ready = true, gate_out_ready = true;
-    int multiplier = 2;
+    int multiplier = 5;
     int timer = 0;
 
     Infrastructure* map[MAX_Y][MAX_X];

@@ -22,8 +22,8 @@ signals:
     void notify_train_incoming(Train*);
 
 private:
-    int multiplier = 2;
-    int train_interval = 5;
+    int multiplier = 5;
+    int train_interval = 15;
 };
 
 #endif // TRAIN_MAKER_H

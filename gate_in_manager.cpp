@@ -59,7 +59,6 @@ void Gate_In_Manager::run()
                     else if(platform_list[i]->getTrain()->getDirection() == EXITING)
                         outcoming_train_gate.push_back(platform_list[i]);
                     platform_list[i]->getTrain()->setOut_waiting_list(true);
-                    // emit change_color_to_red(i);
                 }
             }
         }
@@ -91,31 +90,34 @@ void Gate_In_Manager::run()
     }
 }
 
-void Gate_In_Manager::notified_train_arrived(Infrastructure *destination)
+void Gate_In_Manager::notified_train_arrived(Train* train_input,Infrastructure* begin, Infrastructure* destination)
 {
+    begin->setTrain(nullptr);
+    destination->setTrain(train_input);
     if(destination == out)
     {
-        emit notify_train_label_detach(destination->getTrain());
-        delete destination->getTrain();
+        emit notify_train_label_detach(train_input);
+        delete train_input;
         destination->setTrain(nullptr);
         destination->setOccupied(false);
         gate_out_ready = true;
         return;
     }
-    else if(destination->getType() == PLATFORM && destination->getTrain()->getDirection() == ENTERING)
+    else if(destination->getType() == PLATFORM && train_input->getDirection() == ENTERING)
     {
         this->gate_in_ready = true;
         qDebug() << QString::fromStdString("Train ") + QString::number(destination->getTrain()->getId()) + " arrived on Platform";
     }
-    else if(destination->getType() == MINE && destination->getTrain()->getDirection() == ENTERING)
+    else if(destination->getType() == MINE && train_input->getDirection() == ENTERING)
     {
-        destination->getTrain()->setDirection(EXITING);
+        train_input->setDirection(EXITING);
         qDebug() << QString::fromStdString("Train ") + QString::number(destination->getTrain()->getId()) + " arrived on Mine";
     }
-    else if(destination->getType() == PLATFORM && destination->getTrain()->getDirection() == EXITING)
+    else if(destination->getType() == PLATFORM && train_input->getDirection() == EXITING)
     {
         qDebug() << QString::fromStdString("Train ") + QString::number(destination->getTrain()->getId()) + " arrived on Platform";
     }
+    train_input->setOut_waiting_list(false);
     return;
 }
 
@@ -133,7 +135,6 @@ void Gate_In_Manager::put_train_at_entrance()
     if(path)
     {
         in->setTrain(tmp);
-        tmp->add_duration(path->at(path->size()-1)->getStay());
         incoming_train.pop_front();
         emit notify_put_train_on_canvas(tmp);
         emit notify_train_depart(path);
@@ -148,13 +149,11 @@ bool Gate_In_Manager::train_depart(Infrastructure* start) // signal the train to
     if(start->getTrain()->getDirection() == ENTERING) // kalo masuk dari platform ke mine
     {
         std::pair<Infrastructure*, int>* available_mine = this->check_free_mine();
-        if(available_mine != nullptr)
+        if(available_mine)
         {
             std::deque <Infrastructure*> *path = this->navigate(start, available_mine->first, start->getTrain()->getDirection());
             if(path)
             {
-                start->getTrain()->setOut_waiting_list(false);
-                start->getTrain()->add_duration(available_mine->first->getStay());
                 qDebug() << QString::fromStdString("Train ") + QString::number(start->getTrain()->getId()) + " departed from Platform";
                 emit notify_train_depart(path);
                 delete available_mine;
@@ -169,7 +168,6 @@ bool Gate_In_Manager::train_depart(Infrastructure* start) // signal the train to
         std::deque <Infrastructure*> *path = this->navigate(start, out, start->getTrain()->getDirection());
         if(path)
         {
-            start->getTrain()->setOut_waiting_list(false);
             qDebug() << QString::fromStdString("Train ") + QString::number(start->getTrain()->getId()) + " departed from Platform";
             emit notify_train_depart(path);
             gate_out_ready = false;
@@ -178,7 +176,7 @@ bool Gate_In_Manager::train_depart(Infrastructure* start) // signal the train to
         else
             gate_out_ready = true;
     }
-    else if(start->getTrain()->getDirection() == EXITING) // kalo keluar dari mine ke platform
+    else if(start->getTrain()->getDirection() == EXITING && start->getType() == MINE) // kalo keluar dari mine ke platform
     {
         for(int i = 0; i < PLATFORM_SUM; i++)
         {
@@ -187,8 +185,6 @@ bool Gate_In_Manager::train_depart(Infrastructure* start) // signal the train to
                 std::deque <Infrastructure*> *path = this->navigate(start, platform_list[i], start->getTrain()->getDirection());
                 if(path)
                 {
-                    start->getTrain()->add_duration(platform_list[i]->getStay());
-                    start->getTrain()->setOut_waiting_list(false);
                     qDebug() << QString::fromStdString("Train ") + QString::number(start->getTrain()->getId()) + " departed from Mine";
                     emit notify_train_depart(path);
                     return true;
@@ -204,6 +200,9 @@ std::deque<Infrastructure *> *Gate_In_Manager::navigate(Infrastructure *start_po
     Infrastructure *current = start_pos, *before, *backtrack = end_pos;
     std::vector<std::pair<Infrastructure *, Infrastructure *>> before_after_list;
     std::stack<Infrastructure *> branches;
+
+    if(!start_pos || !end_pos)
+        return nullptr;
 
     while(current != end_pos)
     {
