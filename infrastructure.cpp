@@ -1,14 +1,16 @@
 #include "infrastructure.h"
 
-Infrastructure::Infrastructure(int new_type)
+Infrastructure::Infrastructure(int newType, int newY, int newX)
 {  
-    this->type = new_type;
+    this->type = newType;
+    this->y = newY;
+    this->x = newX;
     if(this->type == PLATFORM)
-        this->stay_duration = 10;
+        this->stay = 10;
     else if(this->type == MINE)
-        this->stay_duration = 115;
+        this->stay = 115;
 
-    this->possible_mine_group = new std::vector <int>;
+    this->mines = new std::vector <int>;
 }
 
 int Infrastructure::getType() const
@@ -16,22 +18,32 @@ int Infrastructure::getType() const
     return type;
 }
 
-bool Infrastructure::getIs_occupied() const
+int Infrastructure::getX() const
 {
-    return is_occupied;
+    return x;
 }
 
-void Infrastructure::setIs_occupied(bool newIs_occupied)
+int Infrastructure::getY() const
 {
-    is_occupied = newIs_occupied;
+    return y;
 }
 
-int Infrastructure::getStay_duration() const
+bool Infrastructure::getOccupied() const
 {
-    return stay_duration;
+    return occupied;
 }
 
-void Infrastructure::setLeft_list(Infrastructure *&newLeft)
+void Infrastructure::setOccupied(bool newOccupied)
+{
+    occupied = newOccupied;
+}
+
+int Infrastructure::getStay() const
+{
+    return stay;
+}
+
+void Infrastructure::addLeft(Infrastructure *newLeft)
 {
     this->left_list.push_back(newLeft);
 }
@@ -41,7 +53,7 @@ const std::vector<Infrastructure *> &Infrastructure::getLeft_list() const
     return left_list;
 }
 
-void Infrastructure::setRight_list(Infrastructure *&newRight)
+void Infrastructure::addRight(Infrastructure *newRight)
 {
     this->right_list.push_back(newRight);
 }
@@ -51,25 +63,22 @@ const std::vector<Infrastructure *> &Infrastructure::getRight_list() const
     return right_list;
 }
 
-Train *Infrastructure::getCurrent_train() const
+Train *Infrastructure::getTrain() const
 {
-    return current_train;
+    return train;
 }
 
-void Infrastructure::setCurrent_train(Train *newCurrent_train)
+void Infrastructure::setTrain(Train *newTrain)
 {
-    current_train = newCurrent_train;
+    train = newTrain;
 }
 
-const std::vector<int> *Infrastructure::getPossible_mine_group() const
+std::vector<int> *Infrastructure::getMines() const
 {
-    if(this->type == PLATFORM)
-        return this->possible_mine_group;
-    return nullptr;
+    return mines;
 }
 
-void Infrastructure::setPossible_mine_group(const int &newPossible_mine_group)
+void Infrastructure::setMines(const int &newMines)
 {
-    if(this->type == PLATFORM)
-        this->possible_mine_group->push_back(newPossible_mine_group);
+    this->mines->push_back(newMines);
 }

@@ -21,30 +21,27 @@ public:
     explicit Gate_In_Manager(QObject *parent = nullptr);
     void run();
 
-    void setMultiplier(int newMultiplier);
+//    void setMultiplier(int newMultiplier);
 
-    void setGate_out_cooldown(int newGate_out_cooldown);
-
-    enum {RAIL, PLATFORM, MINE};
-    enum {LEFT, RIGHT};
+//    void setGate_out_cooldown(int newGate_out_cooldown);
 
 signals:
-    void train_in_entrance(int,Train*);
-    void notify_animation(int, bool, Train*); // kalau true, suruh animasi masuk, false = animasi keluar
-    void update_cooldown_canvas(int);
-    void time_update(int);
-    void change_color_to_red(int);
-    void update_in_waiting_list(QString);
+//    void train_in_entrance(int,Train*);
+//    void notify_animation(int, bool, Train*); // kalau true, suruh animasi masuk, false = animasi keluar
+//    void update_cooldown_canvas(int);
+//    void time_update(int);
+//    void change_color_to_red(int);
+//    void update_in_waiting_list(QString);
 
 public slots:
-    void notified_to_remove_train(int);
-    void on_new_train_notified(Train*);
-    void set_train_on_platform(int, Train*);
+//    void notified_to_remove_train(int);
+//    void on_new_train_notified(Train*);
+//    void set_train_on_platform(int, Train*);
 
 private:
-    void notify_train_into_platform(int pos);
-    void notify_train_exiting_platform(int pos, Train*);
-    std::deque<Infrastructure*> navigate(Infrastructure* start_pos, Infrastructure* end_pos, bool direction);
+//    void notify_train_into_platform(int pos);
+//    void notify_train_exiting_platform(int pos, Train*);
+    std::deque<Infrastructure*> *navigate(Infrastructure* start_pos, Infrastructure* end_pos, bool direction);
 
     int gate_out_cooldown = -1;
     int train_out_cooldown = -1;
@@ -56,13 +53,15 @@ private:
     Infrastructure* map[MAX_Y][MAX_X];
     Infrastructure* in = map[0][MAX_X-1];
     Infrastructure* out = map[2][MAX_X-1];
-    std::vector<Infrastructure*> Mine_group[3];
     Infrastructure* platform_list[PLATFORM_SUM];
-
+    std::vector<Infrastructure*> Mine_group[3];
+    enum {RAIL, PLATFORM, MINE};
+    enum {LEFT, RIGHT};
 
     std::deque<Train*> incoming_train;
     std::deque<int> outcoming_train_pos;
 
+    // Initialization
     void left_initialization();
     void left_hand_initialization();
     void right_initialization();
@@ -76,6 +75,8 @@ private:
     std::deque<int> fill_left = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,-1,9,11,-1,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,-1,4,6,13,17,-1,1,2,3,4,5,6,7,14,18,19,20,21,-1,6,8,15,19,-1,
                                  1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,-1,8,10,17,-1,9,10,11,12,13,14,15,16,17,18,19,20,21,-1,10,12,15,-1,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,-1,
                                  12,14,16,-1,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,-1,14,16,-1,15,16,17,18,19,20,21};
+    std::deque<int> fill_right = {23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,-1,33,34,36,-1,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,-1,31,34,-1,23,24,25,26,27,28,29,30,33,-1,29,32,-1,
+                                  23,24,25,26,27,28,31,-1,27,30,-1,23,24,25,26,29,-1,25,28,-1,23,24,25,26,27,-1,26,-1,23,24,25,-1,24,-1,23};
 };
 
 #endif // GATE_IN_MANAGER_H

@@ -7,35 +7,40 @@
 class Infrastructure
 {
 public:
-    Infrastructure(int new_type);
+    Infrastructure(int newType, int newY, int newX);
+
     int getType() const;
 
-    bool getIs_occupied() const;
-    void setIs_occupied(bool newIs_occupied);
+    int getX() const;
 
-    int getStay_duration() const;
+    int getY() const;
 
-    void setLeft_list(Infrastructure *&newLeft);
+    bool getOccupied() const;
+    void setOccupied(bool newOccupied);
+
+    int getStay() const;
+
+    void addLeft(Infrastructure *newLeft);
     const std::vector<Infrastructure *> &getLeft_list() const;
 
-    void setRight_list(Infrastructure *&newRight);
+    void addRight(Infrastructure *newRight);
     const std::vector<Infrastructure *> &getRight_list() const;
 
-    Train *getCurrent_train() const;
-    void setCurrent_train(Train *newCurrent_train);
+    Train *getTrain() const;
+    void setTrain(Train *newTrain);
 
-    const std::vector<int> *getPossible_mine_group() const;
-    void setPossible_mine_group(const int &newPossible_mine_group);
+    std::vector<int> *getMines() const;
+    void setMines(const int &newMines);
 
 private:
     enum {RAIL, PLATFORM, MINE};
-    int type = -1;
-    bool is_occupied = false;
-    int stay_duration = -1;
+    int type = -1, x = -1, y = -1;
+    bool occupied = false;
+    int stay = -1;
     std::vector<Infrastructure*> left_list;
     std::vector<Infrastructure*> right_list;
-    Train* current_train = nullptr;
-    std::vector <int>* possible_mine_group;
+    Train* train = nullptr;
+    std::vector <int>* mines;
 };
 
 #endif // INFRASTRUCTURE_H
