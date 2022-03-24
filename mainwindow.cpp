@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
         this->map_labels[i] = new QLabel(this);
         int x = i % MAX_X;
         int y = i / MAX_X;
-        this->map_labels[i]->setGeometry(40*x, 30*y, 40, 30);
+        this->map_labels[i]->setGeometry(40*x, 300 + 30*y, 40, 30);
         this->map_labels[i]->setAutoFillBackground(true);
     }
 
@@ -27,7 +27,7 @@ MainWindow::MainWindow(QWidget *parent)
         this->train_labels[i] = new std::pair<QLabel*, Train*>;
         this->train_labels[i]->first = new QLabel(this);
         this->train_labels[i]->second = nullptr;
-        this->train_labels[i]->first->setGeometry(40*(MAX_X-1), 0, 40, 30);
+        this->train_labels[i]->first->setGeometry(40*(MAX_X-1), 300, 40, 30);
         this->train_labels[i]->first->setStyleSheet("font: 10pt; color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border: 2px solid black");
         train_labels[i]->first->setAutoFillBackground(true);
         this->train_labels[i]->first->hide();
@@ -36,8 +36,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(train_create, SIGNAL(notify_train_incoming(Train*)), gate_in, SLOT(notified_train_incoming(Train*)));
 
     connect(canvas_animation, SIGNAL(notify_move_train(Train*,Infrastructure*)), this, SLOT(notified_move_train(Train*,Infrastructure*)));
-    connect(canvas_animation, SIGNAL(notify_train_arrived(Train*,Infrastructure*, Infrastructure*)), gate_in, SLOT(notified_train_arrived(Train*,Infrastructure*, Infrastructure*)));
+    connect(canvas_animation, SIGNAL(notify_train_arrived(Train*,Infrastructure*,Infrastructure*)), gate_in, SLOT(notified_train_arrived(Train*,Infrastructure*,Infrastructure*)));
 
+    connect(gate_in, SIGNAL(notify_incoming_train_full(bool)), train_create, SLOT(notified_incoming_train_full(bool)));
     connect(gate_in, SIGNAL(notify_color(int,int,int)), this, SLOT(notified_color(int,int,int)));
     connect(gate_in, SIGNAL(notify_train_label_attach(Train*)), this, SLOT(notified_train_label_attach(Train*)));
     connect(gate_in, SIGNAL(notify_put_train_on_canvas(Train*)), this, SLOT(notified_put_train_on_canvas(Train*)));
@@ -103,7 +104,7 @@ void MainWindow::notified_train_label_detach(Train *train_input)
         if(this->train_labels[i]->second == train_input)
         {
             this->train_labels[i]->second = nullptr;
-            train_labels[i]->first->move(40*(MAX_X-1), 0);
+            train_labels[i]->first->move(40*(MAX_X-1), 300);
             train_labels[i]->first->setStyleSheet("font: 10pt; color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border: 2px solid black");
             train_labels[i]->first->setText("");
             train_labels[i]->first->hide();
@@ -140,9 +141,4 @@ void MainWindow::start_simulation()
     gate_in->start();
     canvas_animation->start();
     train_create->start();
-}
-
-void MainWindow::background_initialization()
-{
-
 }

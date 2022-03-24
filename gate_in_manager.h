@@ -19,6 +19,7 @@ class Gate_In_Manager : public QThread
     Q_OBJECT
 public:
     explicit Gate_In_Manager(QObject *parent = nullptr);
+    ~Gate_In_Manager();
     void run();
 
     void map_coloring();
@@ -30,6 +31,7 @@ signals:
     void notify_train_label_detach(Train*);
     void notify_color(int,int,int);
     void notify_change_color(Train*);
+    void notify_incoming_train_full(bool);
 
 public slots:
     void notified_train_arrived(Train*,Infrastructure*, Infrastructure*);
@@ -41,7 +43,7 @@ private:
     std::deque<Infrastructure*> *navigate(Infrastructure* start_pos, Infrastructure* end_pos, bool direction);
 
     Infrastructure *check_free_platform();
-    bool gate_in_ready = true, gate_out_ready = true;
+    bool gate_in_ready = true, gate_out_ready = true, incoming_train_full = false;
     int multiplier = 5;
     int timer = 0;
 

@@ -18,6 +18,20 @@ Gate_In_Manager::Gate_In_Manager(QObject *parent) : QThread(parent)
     out = map[2][MAX_X-1];
 }
 
+Gate_In_Manager::~Gate_In_Manager()
+{
+    for(int i = 0; i < MAX_Y; i++)
+        for(int j = 0; j < MAX_X; j++)
+            if(this->map[i][j])
+                delete this->map[i][j];
+
+    while(!incoming_train.empty())
+    {
+        delete incoming_train.front();
+        incoming_train.pop_front();
+    }
+}
+
 void Gate_In_Manager::run()
 {
     while(true)
@@ -124,6 +138,11 @@ void Gate_In_Manager::notified_train_arrived(Train* train_input,Infrastructure* 
 void Gate_In_Manager::notified_train_incoming(Train *train_input)
 {
     incoming_train.push_back(train_input);
+    if(incoming_train.size() > 9)
+    {
+        this->incoming_train_full = true;
+        emit notify_incoming_train_full(incoming_train_full);
+    }
     return;
 }
 
@@ -135,6 +154,11 @@ void Gate_In_Manager::put_train_at_entrance()
     {
         in->setTrain(tmp);
         incoming_train.pop_front();
+        if(incoming_train_full && incoming_train.size() < 6)
+        {
+            this->incoming_train_full = false;
+            emit notify_incoming_train_full(incoming_train_full);
+        }
         emit notify_train_label_attach(tmp);
         emit notify_put_train_on_canvas(tmp);
         emit notify_train_depart(path);
