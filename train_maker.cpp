@@ -21,6 +21,7 @@ void Train_maker::run()
         {
             Train* new_train = new Train((1+rand()%999));
             counter = this->train_interval;
+            qDebug() << QString::fromStdString("Train ") + QString::number(new_train->getId()) + " is coming";
             emit notify_train_incoming(new_train);
         }
         this->msleep(1000 / multiplier);

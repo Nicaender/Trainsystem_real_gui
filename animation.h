@@ -29,7 +29,7 @@ public slots:
 private:
     std::vector<std::deque<Infrastructure*>> path_list;
     std::vector<std::deque<Infrastructure*>> copy_path_list;
-    int multiplier = 5;
+    int multiplier = 2;
 };
 
 #endif // ANIMATION_H

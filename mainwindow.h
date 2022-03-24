@@ -26,6 +26,7 @@ public slots:
     void notified_move_train(Infrastructure*);
     void notified_train_label_detach(Train*);
     void notified_color(int, int, int);
+    void notified_change_color(Train*);
 
 private slots:
 

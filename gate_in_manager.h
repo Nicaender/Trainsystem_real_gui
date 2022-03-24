@@ -22,9 +22,6 @@ public:
     void run();
 
     void map_coloring();
-//    void setMultiplier(int newMultiplier);
-
-//    void setGate_out_cooldown(int newGate_out_cooldown);
 
 signals:
     void notify_train_label_attach(Train*);
@@ -32,18 +29,11 @@ signals:
     void notify_train_depart(std::deque <Infrastructure*>*);
     void notify_train_label_detach(Train*);
     void notify_color(int,int,int);
-//    void notify_animation(int, bool, Train*); // kalau true, suruh animasi masuk, false = animasi keluar
-//    void update_cooldown_canvas(int);
-//    void time_update(int);
-//    void change_color_to_red(int);
-//    void update_in_waiting_list(QString);
+    void notify_change_color(Train*);
 
 public slots:
     void notified_train_arrived(Infrastructure*);
     void notified_train_incoming(Train*);
-//    void notified_to_remove_train(int);
-//    void on_new_train_notified(Train*);
-//    void set_train_on_platform(int, Train*);
 
 private:
     void put_train_at_entrance();
@@ -52,7 +42,7 @@ private:
 
     Infrastructure *check_free_platform();
     bool gate_in_ready = true, gate_out_ready = true;
-    int multiplier = 5;
+    int multiplier = 2;
     int timer = 0;
 
     Infrastructure* map[MAX_Y][MAX_X];

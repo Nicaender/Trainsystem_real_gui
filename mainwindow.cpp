@@ -33,16 +33,17 @@ MainWindow::MainWindow(QWidget *parent)
         this->train_labels[i]->first->hide();
     }
 
-    connect(gate_in, SIGNAL(notify_color(int,int,int)), this, SLOT(notified_color(int,int,int)));
-    connect(gate_in, SIGNAL(notify_train_label_attach(Train*)), this, SLOT(notified_train_label_attach(Train*)));
-    connect(gate_in, SIGNAL(notify_put_train_on_canvas(Train*)), this, SLOT(notified_put_train_on_canvas(Train*)));
-    connect(gate_in, SIGNAL(notify_train_depart(std::deque<Infrastructure*>*)), canvas_animation, SLOT(notified_train_depart(std::deque<Infrastructure*>*)));
-    connect(gate_in, SIGNAL(notify_train_label_detach(Train*)), this, SLOT(notified_train_label_detach(Train*)));
+    connect(train_create, SIGNAL(notify_train_incoming(Train*)), gate_in, SLOT(notified_train_incoming(Train*)));
 
     connect(canvas_animation, SIGNAL(notify_move_train(Infrastructure*)), this, SLOT(notified_move_train(Infrastructure*)));
     connect(canvas_animation, SIGNAL(notify_train_arrived(Infrastructure*)), gate_in, SLOT(notified_train_arrived(Infrastructure*)));
 
-    connect(train_create, SIGNAL(notify_train_incoming(Train*)), gate_in, SLOT(notified_train_incoming(Train*)));
+    connect(gate_in, SIGNAL(notify_color(int,int,int)), this, SLOT(notified_color(int,int,int)));
+    connect(gate_in, SIGNAL(notify_train_label_attach(Train*)), this, SLOT(notified_train_label_attach(Train*)));
+    connect(gate_in, SIGNAL(notify_put_train_on_canvas(Train*)), this, SLOT(notified_put_train_on_canvas(Train*)));
+    connect(gate_in, SIGNAL(notify_train_depart(std::deque<Infrastructure*>*)), canvas_animation, SLOT(notified_train_depart(std::deque<Infrastructure*>*)));
+    connect(gate_in, SIGNAL(notify_change_color(Train*)), this, SLOT(notified_change_color(Train*)));
+    connect(gate_in, SIGNAL(notify_train_label_detach(Train*)), this, SLOT(notified_train_label_detach(Train*)));
 
     this->gate_in->map_coloring();
     this->start_simulation();
@@ -121,6 +122,18 @@ void MainWindow::notified_color(int x, int y, int type)
         this->map_labels[y2 + x]->setStyleSheet("background-color: rgb(205, 205, 255); border: 1px solid black");
     else
         this->map_labels[y2 + x]->setStyleSheet("background-color: rgb(255, 205, 205); border: 1px solid black");
+}
+
+void MainWindow::notified_change_color(Train *train_input)
+{
+    for(unsigned int i = 0; i < PLATFORM_SUM+PLATFORM_SUM; i++)
+    {
+        if(this->train_labels[i]->second == train_input)
+        {
+            this->train_labels[i]->first->setStyleSheet("font: 10pt; color: rgb(0, 0, 0); background-color: rgb(255, 155, 155); border: 2px solid black");
+            return;
+        }
+    }
 }
 
 void MainWindow::start_simulation()
