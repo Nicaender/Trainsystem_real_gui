@@ -104,6 +104,7 @@ void MainWindow::notified_train_label_detach(Train *train_input)
         {
             this->train_labels[i]->second = nullptr;
             train_labels[i]->first->move(40*(MAX_X-1), 0);
+            train_labels[i]->first->setStyleSheet("font: 10pt; color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border: 2px solid black");
             train_labels[i]->first->setText("");
             train_labels[i]->first->hide();
             return;

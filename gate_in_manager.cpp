@@ -124,7 +124,6 @@ void Gate_In_Manager::notified_train_arrived(Train* train_input,Infrastructure* 
 void Gate_In_Manager::notified_train_incoming(Train *train_input)
 {
     incoming_train.push_back(train_input);
-    emit notify_train_label_attach(train_input);
     return;
 }
 
@@ -136,6 +135,7 @@ void Gate_In_Manager::put_train_at_entrance()
     {
         in->setTrain(tmp);
         incoming_train.pop_front();
+        emit notify_train_label_attach(tmp);
         emit notify_put_train_on_canvas(tmp);
         emit notify_train_depart(path);
     }
@@ -607,13 +607,13 @@ void Gate_In_Manager::right_hand_initialization()
 
     // Branches
     // Line I
+    this->map[0][33]->addLeft(this->map[1][32]); // kiri bawah
     this->map[0][33]->addRight(this->map[1][34]); // kanan bawah
-    this->map[0][34]->addLeft(this->map[1][33]); // kiri bawah
     this->map[0][37]->addLeft(this->map[1][36]); // kiri bawah
 
     // Line II
+    this->map[2][31]->addRight(this->map[1][32]); // kanan atas
     this->map[2][32]->addLeft(this->map[3][31]); // kiri bawah
-    this->map[2][32]->addRight(this->map[1][33]); // kanan atas
     this->map[2][35]->addLeft(this->map[1][34]); // kiri atas
     this->map[2][35]->addLeft(this->map[3][34]); // kiri bawah
     this->map[2][35]->addRight(this->map[1][36]); // kanan atas
@@ -655,8 +655,8 @@ void Gate_In_Manager::right_hand_initialization()
 
     // 2nd Branches
     // Line I-II
-    this->map[1][33]->addLeft(this->map[2][32]); // kiri bawah
-    this->map[1][33]->addRight(this->map[0][34]); // kanan atas
+    this->map[1][32]->addLeft(this->map[2][31]); // kiri bawah
+    this->map[1][32]->addRight(this->map[0][33]); // kanan atas
     this->map[1][34]->addLeft(this->map[0][33]); // kiri atas
     this->map[1][34]->addRight(this->map[2][35]); // kanan bawah
     this->map[1][36]->addLeft(this->map[2][35]); // kiri bawah
