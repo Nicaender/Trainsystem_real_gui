@@ -21,6 +21,7 @@ public:
     explicit Gate_In_Manager(QObject *parent = nullptr);
     void run();
 
+    void map_coloring();
 //    void setMultiplier(int newMultiplier);
 
 //    void setGate_out_cooldown(int newGate_out_cooldown);
@@ -30,6 +31,7 @@ signals:
     void notify_put_train_on_canvas(Train*);
     void notify_train_depart(std::deque <Infrastructure*>*);
     void notify_train_label_detach(Train*);
+    void notify_color(int,int,int);
 //    void notify_animation(int, bool, Train*); // kalau true, suruh animasi masuk, false = animasi keluar
 //    void update_cooldown_canvas(int);
 //    void time_update(int);
@@ -46,7 +48,6 @@ public slots:
 private:
     void put_train_at_entrance();
     void train_depart(Infrastructure *start);
-//    void notify_train_exiting_platform(int pos, Train*);
     std::deque<Infrastructure*> *navigate(Infrastructure* start_pos, Infrastructure* end_pos, bool direction);
 
     Infrastructure *check_free_platform();
@@ -83,6 +84,7 @@ private:
     void mine_hand_initialization();
     void platform_initialization();
     void platform_hand_initialization();
+
 };
 
 #endif // GATE_IN_MANAGER_H

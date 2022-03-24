@@ -25,28 +25,25 @@ void Gate_In_Manager::run()
         QMutex m;
         m.lock();
 
-        for(int z = 0; z < 8; z++)
+        std::string cout;
+        for(int i = 0; i < MAX_Y; i++)
         {
-            std::string cout;
-            for(int i = 0; i < MAX_Y; i++)
+            for(int j = 0; j < MAX_X; j++)
             {
-                for(int j = 0; j < MAX_X; j++)
+                if(this->map[i][j])
                 {
-                    if(this->map[i][j])
+                    if(this->map[i][j]->getTrain() != nullptr)
                     {
-                        if(this->map[i][j]->getTrain() != nullptr)
-                        {
-                            cout.append("K");
-                        }
-                        else
-                            cout.append(" ");
+                        cout.append("K");
                     }
                     else
                         cout.append(" ");
                 }
-                qDebug() << QString::fromStdString(cout);
-                cout.clear();
+                else
+                    cout.append(" ");
             }
+            qDebug() << QString::fromStdString(cout);
+            cout.clear();
         }
         qDebug() << timer;
         timer++;
@@ -135,9 +132,9 @@ void Gate_In_Manager::notified_train_arrived(Infrastructure *destination)
 
 void Gate_In_Manager::notified_train_incoming(Train *train_input)
 {
-        incoming_train.push_back(train_input);
-        emit notify_train_label_attach(train_input);
-        return;
+    incoming_train.push_back(train_input);
+    emit notify_train_label_attach(train_input);
+    return;
 }
 
 void Gate_In_Manager::put_train_at_entrance()
@@ -825,5 +822,19 @@ void Gate_In_Manager::platform_hand_initialization()
     {
         this->map[2*i][22]->addLeft(this->map[2*i][21]);
         this->map[2*i][22]->addRight(this->map[2*i][23]);
+    }
+}
+
+void Gate_In_Manager::map_coloring()
+{
+    for(int i = 0; i < MAX_Y; i++)
+    {
+        for(int j = 0; j < MAX_X; j++)
+        {
+            if(this->map[i][j])
+            {
+                    emit notify_color(j, i, this->map[i][j]->getType());
+            }
+        }
     }
 }

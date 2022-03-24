@@ -25,6 +25,7 @@ public slots:
     void notified_put_train_on_canvas(Train*);
     void notified_move_train(Infrastructure*);
     void notified_train_label_detach(Train*);
+    void notified_color(int, int, int);
 
 private slots:
 
@@ -32,8 +33,11 @@ private:
     Gate_In_Manager* gate_in;
     Train_maker* train_create;
     Animation* canvas_animation;
-    void start_simulation();
     std::pair<QLabel*, Train*> **train_labels;
+    QLabel** map_labels;
+
+    void start_simulation();
+    void background_initialization();
     Ui::MainWindow *ui;
 };
 #endif // MAINWINDOW_H

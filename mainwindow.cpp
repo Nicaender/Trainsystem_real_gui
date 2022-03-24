@@ -11,6 +11,16 @@ MainWindow::MainWindow(QWidget *parent)
     train_create = new Train_maker(this);
     canvas_animation = new Animation(this);
 
+    map_labels = new QLabel*[MAX_X * MAX_Y];
+    for(int i = 0; i < MAX_X * MAX_Y; i++)
+    {
+        this->map_labels[i] = new QLabel(this);
+        int x = i % MAX_X;
+        int y = i / MAX_X;
+        this->map_labels[i]->setGeometry(40*x, 30*y, 40, 30);
+        this->map_labels[i]->setAutoFillBackground(true);
+    }
+
     train_labels = new std::pair<QLabel*, Train*>*[PLATFORM_SUM+PLATFORM_SUM];
     for(int i = 0; i < PLATFORM_SUM+PLATFORM_SUM; i++)
     {
@@ -22,6 +32,8 @@ MainWindow::MainWindow(QWidget *parent)
         train_labels[i]->first->setAutoFillBackground(true);
         this->train_labels[i]->first->hide();
     }
+
+    connect(gate_in, SIGNAL(notify_color(int,int,int)), this, SLOT(notified_color(int,int,int)));
     connect(gate_in, SIGNAL(notify_train_label_attach(Train*)), this, SLOT(notified_train_label_attach(Train*)));
     connect(gate_in, SIGNAL(notify_put_train_on_canvas(Train*)), this, SLOT(notified_put_train_on_canvas(Train*)));
     connect(gate_in, SIGNAL(notify_train_depart(std::deque<Infrastructure*>*)), canvas_animation, SLOT(notified_train_depart(std::deque<Infrastructure*>*)));
@@ -32,6 +44,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(train_create, SIGNAL(notify_train_incoming(Train*)), gate_in, SLOT(notified_train_incoming(Train*)));
 
+    this->gate_in->map_coloring();
     this->start_simulation();
 }
 
@@ -97,9 +110,25 @@ void MainWindow::notified_train_label_detach(Train *train_input)
     }
 }
 
+void MainWindow::notified_color(int x, int y, int type)
+{
+    int y2 = (39) * y;
+    if(type == 0)
+        this->map_labels[y2 + x]->setStyleSheet("background-color: rgb(205, 255, 205); border: 1px solid black");
+    else if(type == 1)
+        this->map_labels[y2 + x]->setStyleSheet("background-color: rgb(205, 205, 255); border: 1px solid black");
+    else
+        this->map_labels[y2 + x]->setStyleSheet("background-color: rgb(255, 205, 205); border: 1px solid black");
+}
+
 void MainWindow::start_simulation()
 {
     gate_in->start();
     canvas_animation->start();
     train_create->start();
+}
+
+void MainWindow::background_initialization()
+{
+
 }
