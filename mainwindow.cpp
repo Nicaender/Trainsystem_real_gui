@@ -18,19 +18,24 @@ MainWindow::MainWindow(QWidget *parent)
     train_create = new Train_maker(this);
     canvas_animation = new Animation(this);
 
-    connect(gate_in, SIGNAL(update_cooldown_canvas(int)), this, SLOT(update_out_cooldown(int))); // update waktu
-    connect(gate_in, SIGNAL(time_update(int)), this, SLOT(time_update(int))); // update jam
-    connect(gate_in, SIGNAL(update_in_waiting_list(QString)), this, SLOT(update_in_waiting_list(QString))); // connect waiting list dari luar
-    connect(train_create, SIGNAL(notify_gate_in(Train*)), gate_in, SLOT(on_new_train_notified(Train*))); // Train to station
-    connect(gate_in, SIGNAL(train_in_entrance(int,Train*)), this, SLOT(train_entering(int,Train*))); // dari gate bikin kereta
-    connect(this, SIGNAL(notify_animation(int,bool,Train*)), canvas_animation, SLOT(start_animating(int,bool,Train*))); // dari canvas suruh gerakin animasi
-    connect(canvas_animation, SIGNAL(move_entering_on_canvas(int)), this, SLOT(move_train(int))); // dari animasi gerakin di canvas
-    connect(canvas_animation, SIGNAL(train_arrived_on_platform(int,Train*)), gate_in, SLOT(set_train_on_platform(int,Train*))); // notif bahwa kereta sampai
-    connect(gate_in, SIGNAL(change_color_to_red(int)), this, SLOT(change_to_red_train(int))); // ubah kereta jadi merah kalo mau keluar
-    connect(gate_in, SIGNAL(notify_animation(int,bool,Train*)), canvas_animation, SLOT(start_animating(int,bool,Train*))); // notif untuk keluarin kereta
-    connect(canvas_animation, SIGNAL(move_exiting_on_canvas(int)), this, SLOT(move_train(int))); // dari animasi gerakin di canvas
-    connect(canvas_animation, SIGNAL(destroy_train(int)), this, SLOT(reset_train_on_canvas(int))); // delete kereta di canvas
-    connect(this, SIGNAL(notify_gate_to_cooldown(int)), gate_in, SLOT(notified_to_remove_train(int))); // dari canvas delete kereta di gate
+    connect(gate_in, SIGNAL(notify_train_depart(std::deque<Infrastructure*>*)), canvas_animation, SLOT(notified_train_depart(std::deque<Infrastructure*>*)));
+    connect(canvas_animation, SIGNAL(notify_train_arrived(Infrastructure*)), gate_in, SLOT(notified_train_arrived(Infrastructure*)));
+
+    this->start_simulation();
+
+//    connect(gate_in, SIGNAL(update_cooldown_canvas(int)), this, SLOT(update_out_cooldown(int))); // update waktu
+//    connect(gate_in, SIGNAL(time_update(int)), this, SLOT(time_update(int))); // update jam
+//    connect(gate_in, SIGNAL(update_in_waiting_list(QString)), this, SLOT(update_in_waiting_list(QString))); // connect waiting list dari luar
+//    connect(train_create, SIGNAL(notify_gate_in(Train*)), gate_in, SLOT(on_new_train_notified(Train*))); // Train to station
+//    connect(gate_in, SIGNAL(train_in_entrance(int,Train*)), this, SLOT(train_entering(int,Train*))); // dari gate bikin kereta
+//    connect(this, SIGNAL(notify_animation(int,bool,Train*)), canvas_animation, SLOT(start_animating(int,bool,Train*))); // dari canvas suruh gerakin animasi
+//    connect(canvas_animation, SIGNAL(move_entering_on_canvas(int)), this, SLOT(move_train(int))); // dari animasi gerakin di canvas
+//    connect(canvas_animation, SIGNAL(train_arrived_on_platform(int,Train*)), gate_in, SLOT(set_train_on_platform(int,Train*))); // notif bahwa kereta sampai
+//    connect(gate_in, SIGNAL(change_color_to_red(int)), this, SLOT(change_to_red_train(int))); // ubah kereta jadi merah kalo mau keluar
+//    connect(gate_in, SIGNAL(notify_animation(int,bool,Train*)), canvas_animation, SLOT(start_animating(int,bool,Train*))); // notif untuk keluarin kereta
+//    connect(canvas_animation, SIGNAL(move_exiting_on_canvas(int)), this, SLOT(move_train(int))); // dari animasi gerakin di canvas
+//    connect(canvas_animation, SIGNAL(destroy_train(int)), this, SLOT(reset_train_on_canvas(int))); // delete kereta di canvas
+//    connect(this, SIGNAL(notify_gate_to_cooldown(int)), gate_in, SLOT(notified_to_remove_train(int))); // dari canvas delete kereta di gate
 }
 
 MainWindow::~MainWindow()
@@ -104,7 +109,7 @@ void MainWindow::start_simulation()
 {
     gate_in->start();
     canvas_animation->start();
-    train_create->start();
+//    train_create->start();
 }
 
 void MainWindow::on_start_button_clicked()

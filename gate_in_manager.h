@@ -34,6 +34,7 @@ signals:
 //    void update_in_waiting_list(QString);
 
 public slots:
+    void notified_train_arrived(Infrastructure*);
 //    void notified_to_remove_train(int);
 //    void on_new_train_notified(Train*);
 //    void set_train_on_platform(int, Train*);
@@ -47,7 +48,7 @@ private:
     int gate_out_cooldown = -1;
     int train_out_cooldown = -1;
     Infrastructure *check_free_platform();
-    bool pathway_entering = true, gate_in_ready = true, gate_out_ready = true;
+    bool gate_in_ready = true, gate_out_ready = true, pathway = true;
     int multiplier = 1;
     int timer = 0;
 
@@ -60,7 +61,8 @@ private:
     enum {ENTERING, EXITING};
 
     std::deque<Train*> incoming_train;
-    std::deque<int> outcoming_train_pos;
+    std::deque<Infrastructure*> outcoming_train_pathway;
+    std::deque<Infrastructure*> outcoming_train_gate;
 
     // Help attributes
     std::deque<int> fill_left = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,-1,9,11,-1,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,-1,4,6,13,17,-1,1,2,3,4,5,6,7,14,18,19,20,21,-1,6,8,15,19,-1,
@@ -68,7 +70,7 @@ private:
                                  12,14,16,-1,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,-1,14,16,-1,15,16,17,18,19,20,21};
     std::deque<int> fill_right = {23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,-1,33,34,36,-1,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,-1,31,34,-1,23,24,25,26,27,28,29,30,33,-1,29,32,-1,
                                   23,24,25,26,27,28,31,-1,27,30,-1,23,24,25,26,29,-1,25,28,-1,23,24,25,26,27,-1,26,-1,23,24,25,-1,24,-1,23};
-    int check_free_mine_group();
+    std::pair<Infrastructure *, int> *check_free_mine();
 
     // Initialization
     void left_initialization();

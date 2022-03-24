@@ -8,7 +8,7 @@ Infrastructure::Infrastructure(int newType, int newY, int newX)
     if(this->type == PLATFORM)
         this->stay = 10;
     else if(this->type == MINE)
-        this->stay = 115;
+        this->stay = 5;
 
     this->mines = new std::vector <int>;
 }
@@ -65,7 +65,7 @@ const std::vector<Infrastructure *> &Infrastructure::getRight_list() const
 
 Train *Infrastructure::getTrain() const
 {
-    return train;
+    return this->train;
 }
 
 void Infrastructure::setTrain(Train *newTrain)

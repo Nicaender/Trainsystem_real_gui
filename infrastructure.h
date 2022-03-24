@@ -36,7 +36,7 @@ private:
     enum {RAIL, PLATFORM, MINE};
     int type = -1, x = -1, y = -1;
     bool occupied = false;
-    int stay = -1;
+    int stay = 0;
     std::vector<Infrastructure*> left_list;
     std::vector<Infrastructure*> right_list;
     Train* train = nullptr;

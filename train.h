@@ -24,7 +24,7 @@ public:
 private:
     enum {ENTERING, EXITING};
     int id;
-    int stop_duration;
+    int stop_duration = 0;
     bool out_waiting_list = false;
     bool direction = ENTERING;
 };
