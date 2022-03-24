@@ -17,56 +17,36 @@ Gate_In_Manager::Gate_In_Manager(QObject *parent) : QThread(parent)
     this->right_hand_initialization();
     in = map[0][MAX_X-1];
     out = map[2][MAX_X-1];
-
-    Train* test = new Train(45);
-    Train* test2 = new Train(25);
-    incoming_train.push_back(test);
-    incoming_train.push_back(test2);
 }
 
 void Gate_In_Manager::run()
 {
-    int tmp_cooldown = -1;
     while(true)
     {
         QMutex m;
         m.lock();
-
-        for(int z = 0; z < 8; z++)
-        {
-            std::string cout;
-            for(int i = 0; i < MAX_Y; i++)
-            {
-                for(int j = 0; j < MAX_X; j++)
-                {
-                    if(this->map[i][j])
-                    {
-                        if(this->map[i][j]->getTrain() != nullptr)
-                        {
-                            cout.append("K");
-                        }
-                        else
-                            cout.append(" ");
-                    }
-                    else
-                        cout.append(" ");
-                }
-                qDebug() << QString::fromStdString(cout);
-                cout.clear();
-            }
-        }
         qDebug() << timer;
-        //        emit time_update(this->timer);
         timer++;
-        tmp_cooldown = train_out_cooldown;
-        if(tmp_cooldown == 1)
-        {
-            gate_out_ready = true;
-        }
-        if(tmp_cooldown == 0)
-            train_out_cooldown = -1;
 
         // kurangin stay duration setiap kereta di platform dan mine
+        for(int i = 0; i < 3; i++)
+        {
+            for(unsigned int j = 0; j < mine_group[i].size(); j++)
+            {
+                if(mine_group[i].at(j)->getTrain() != nullptr)
+                {
+                    if(mine_group[i].at(j)->getTrain()->getStop_duration() > 0)
+                        mine_group[i].at(j)->getTrain()->stop_reduction();
+                    if(mine_group[i].at(j)->getTrain()->getStop_duration() == 0 && mine_group[i].at(j)->getTrain()->getOut_waiting_list() == false)
+                    {
+                        outcoming_train_pathway.push_back(mine_group[i].at(j));
+                        mine_group[i].at(j)->getTrain()->setOut_waiting_list(true);
+                        emit notify_change_color(mine_group[i].at(j)->getTrain());
+                    }
+                }
+            }
+        }
+
         for(int i = 0; i < PLATFORM_SUM; i++)
         {
             if(platform_list[i]->getTrain() != nullptr)
@@ -80,23 +60,22 @@ void Gate_In_Manager::run()
                     else if(platform_list[i]->getTrain()->getDirection() == EXITING)
                         outcoming_train_gate.push_back(platform_list[i]);
                     platform_list[i]->getTrain()->setOut_waiting_list(true);
-                    // emit change_color_to_red(i);
                 }
             }
         }
-        for(int i = 0; i < 3; i++)
+
+        // kalau ada yang di queue siap gerak
+        if(!outcoming_train_gate.empty() && gate_out_ready == true)
+            if(this->train_depart(outcoming_train_gate.front()))
+                outcoming_train_gate.pop_front();
+        if(!outcoming_train_pathway.empty())
         {
-            for(unsigned int j = 0; j < mine_group[i].size(); j++)
+            for(unsigned int i = 0; i < this->outcoming_train_pathway.size(); i++)
             {
-                if(mine_group[i].at(j)->getTrain() != nullptr)
+                if(this->train_depart(outcoming_train_pathway[i]))
                 {
-                    if(mine_group[i].at(j)->getTrain()->getStop_duration() > 0)
-                        mine_group[i].at(j)->getTrain()->stop_reduction();
-                    if(mine_group[i].at(j)->getTrain()->getStop_duration() == 0 && mine_group[i].at(j)->getTrain()->getOut_waiting_list() == false)
-                    {
-                        outcoming_train_pathway.push_back(mine_group[i].at(j));
-                        mine_group[i].at(j)->getTrain()->setOut_waiting_list(true);
-                    }
+                    this->outcoming_train_pathway.erase(this->outcoming_train_pathway.begin() + i);
+                    break;
                 }
             }
         }
@@ -104,141 +83,127 @@ void Gate_In_Manager::run()
         // kalo ada kereta yang mau masuk, dan gate in ready, dan ada platform kosong, masukin ke platform
         if(!incoming_train.empty() && gate_in_ready)
         {
+            gate_in_ready = false;
             this->put_train_at_entrance();
-        }
-
-        // kalau ada yang di queue siap gerak
-        if(!outcoming_train_gate.empty() && gate_out_ready == true)
-            this->train_depart(outcoming_train_gate.front());
-        if(!outcoming_train_pathway.empty() && pathway == true)
-            this->train_depart(outcoming_train_pathway.front());
-
-        if(tmp_cooldown > 0)
-        {
-            tmp_cooldown--;
-            train_out_cooldown--;
-            //            emit update_cooldown_canvas(tmp_cooldown);
         }
         this->msleep(1000 / multiplier);
         m.unlock();
     }
 }
 
-void Gate_In_Manager::notified_train_arrived(Infrastructure *destination)
+void Gate_In_Manager::notified_train_arrived(Train* train_input,Infrastructure* begin, Infrastructure* destination)
 {
+    begin->setTrain(nullptr);
+    destination->setTrain(train_input);
     if(destination == out)
     {
-        delete destination->getTrain();
+        emit notify_train_label_detach(train_input);
+        delete train_input;
         destination->setTrain(nullptr);
         destination->setOccupied(false);
         gate_out_ready = true;
         return;
     }
-    else if(destination->getType() == PLATFORM && destination->getTrain()->getDirection() == ENTERING)
+    else if(destination->getType() == PLATFORM && train_input->getDirection() == ENTERING)
     {
-        gate_in_ready = true;
+        this->gate_in_ready = true;
+        qDebug() << QString::fromStdString("Train ") + QString::number(destination->getTrain()->getId()) + " arrived on Platform";
     }
-    else if(destination->getType() == PLATFORM && destination->getTrain()->getDirection() == EXITING)
+    else if(destination->getType() == MINE && train_input->getDirection() == ENTERING)
     {
-        pathway = true;
+        train_input->setDirection(EXITING);
+        qDebug() << QString::fromStdString("Train ") + QString::number(destination->getTrain()->getId()) + " arrived on Mine";
     }
-    else if(destination->getType() == MINE && destination->getTrain()->getDirection() == ENTERING)
+    else if(destination->getType() == PLATFORM && train_input->getDirection() == EXITING)
     {
-        pathway = true;
-        destination->getTrain()->setDirection(EXITING);
+        qDebug() << QString::fromStdString("Train ") + QString::number(destination->getTrain()->getId()) + " arrived on Platform";
     }
-    destination->getTrain()->add_duration(destination->getStay());
-    destination->setOccupied(true);
+    train_input->setOut_waiting_list(false);
+    return;
+}
+
+void Gate_In_Manager::notified_train_incoming(Train *train_input)
+{
+    incoming_train.push_back(train_input);
     return;
 }
 
 void Gate_In_Manager::put_train_at_entrance()
 {
     Train* tmp = incoming_train.front();
-    incoming_train.pop_front();
-    std::string in_waiting_list = "Next Train: ";
-    for(unsigned int i = 0; i < incoming_train.size(); i++)
-        in_waiting_list.append("Train " + std::to_string(incoming_train[i]->getId()) + ", ");
-    in->setTrain(tmp);
-    in->setOccupied(true);
-    gate_in_ready = false;
-    std::deque <Infrastructure*> *path = this->navigate(in, this->check_free_platform(), in->getTrain()->getDirection());
+    std::deque <Infrastructure*> *path = this->navigate(in, this->check_free_platform(), tmp->getDirection());
     if(path)
     {
+        in->setTrain(tmp);
+        incoming_train.pop_front();
+        emit notify_train_label_attach(tmp);
+        emit notify_put_train_on_canvas(tmp);
         emit notify_train_depart(path);
     }
     else
-    {
-        in->setTrain(nullptr);
-        in->setOccupied(false);
         gate_in_ready = true;
-        incoming_train.push_front(tmp);
-    }
     return;
 }
 
-void Gate_In_Manager::train_depart(Infrastructure* start) // signal the train to move to its destination
+bool Gate_In_Manager::train_depart(Infrastructure* start) // signal the train to move to its destination
 {
     if(start->getTrain()->getDirection() == ENTERING) // kalo masuk dari platform ke mine
     {
         std::pair<Infrastructure*, int>* available_mine = this->check_free_mine();
-        std::deque <Infrastructure*> *path = this->navigate(start, available_mine->first, start->getTrain()->getDirection());
-        if(path)
+        if(available_mine)
         {
-            outcoming_train_pathway.pop_front();
-            start->getTrain()->setOut_waiting_list(false);
-            emit notify_train_depart(path);
-            pathway = false;
+            std::deque <Infrastructure*> *path = this->navigate(start, available_mine->first, start->getTrain()->getDirection());
+            if(path)
+            {
+                qDebug() << QString::fromStdString("Train ") + QString::number(start->getTrain()->getId()) + " departed from Platform";
+                emit notify_train_depart(path);
+                delete available_mine;
+                return true;
+            }
+            else
+                delete available_mine;
         }
-        else
-            pathway = true;
-        delete available_mine;
     }
     else if(start->getTrain()->getDirection() == EXITING && start->getType() == PLATFORM) // kalo keluar dari platform ke out
     {
         std::deque <Infrastructure*> *path = this->navigate(start, out, start->getTrain()->getDirection());
         if(path)
         {
-            outcoming_train_gate.pop_front();
-            start->getTrain()->setOut_waiting_list(false);
+            qDebug() << QString::fromStdString("Train ") + QString::number(start->getTrain()->getId()) + " departed from Platform";
             emit notify_train_depart(path);
             gate_out_ready = false;
+            return true;
         }
         else
             gate_out_ready = true;
     }
-    else if(start->getTrain()->getDirection() == EXITING) // kalo keluar dari mine ke platform
+    else if(start->getTrain()->getDirection() == EXITING && start->getType() == MINE) // kalo keluar dari mine ke platform
     {
         for(int i = 0; i < PLATFORM_SUM; i++)
         {
-            std::deque <Infrastructure*> *path = this->navigate(start, platform_list[i], start->getTrain()->getDirection());
-            if(path)
+            if(platform_list[i]->getOccupied() == false)
             {
-                outcoming_train_pathway.pop_front();
-                start->getTrain()->setOut_waiting_list(false);
-                emit notify_train_depart(path);
-                pathway = false;
-                break;
+                std::deque <Infrastructure*> *path = this->navigate(start, platform_list[i], start->getTrain()->getDirection());
+                if(path)
+                {
+                    qDebug() << QString::fromStdString("Train ") + QString::number(start->getTrain()->getId()) + " departed from Mine";
+                    emit notify_train_depart(path);
+                    return true;
+                }
             }
-            else
-                pathway = true;
         }
     }
-    return;
+    return false;
 }
-
-//void Gate_In_Manager::notify_train_exiting_platform(int pos, Train* input) // finished - tell animation and mainwindow to move the train
-//{
-//    emit notify_animation(pos, false, input);
-//    outcoming_train_pos.pop_front();
-//    return;
-//}
 
 std::deque<Infrastructure *> *Gate_In_Manager::navigate(Infrastructure *start_pos, Infrastructure *end_pos, bool direction)
 {
     Infrastructure *current = start_pos, *before, *backtrack = end_pos;
     std::vector<std::pair<Infrastructure *, Infrastructure *>> before_after_list;
     std::stack<Infrastructure *> branches;
+
+    if(!start_pos || !end_pos)
+        return nullptr;
 
     while(current != end_pos)
     {
@@ -338,37 +303,6 @@ std::deque<Infrastructure *> *Gate_In_Manager::navigate(Infrastructure *start_po
     return path;
 }
 
-//void Gate_In_Manager::setGate_out_cooldown(int newGate_out_cooldown)
-//{
-//    gate_out_cooldown = newGate_out_cooldown;
-//}
-
-//void Gate_In_Manager::notified_to_remove_train(int pos) // finished - delete the train after the train leaves the station
-//{
-//        delete platforms[pos];
-//        platforms[pos] = nullptr;
-//    train_out_cooldown = gate_out_cooldown;
-//    emit update_cooldown_canvas(train_out_cooldown);
-//    return;
-//}
-
-//void Gate_In_Manager::on_new_train_notified(Train* input) // finished - put a train in waiting list
-//{
-//    incoming_train.push_back(input);
-//    std::string in_waiting_list = "Next Train: ";
-//    for(unsigned int i = 0; i < incoming_train.size(); i++)
-//        in_waiting_list.append("Train " + std::to_string(incoming_train[i]->getId()) + ", ");
-//    emit update_in_waiting_list(QString::fromStdString(in_waiting_list));
-//    return;
-//}
-
-//void Gate_In_Manager::set_train_on_platform(int pos, Train* input) // help function - akan dipanggil oleh animation kalau sudah sampai kesana
-//{
-//        platforms[pos] = input;
-//    gate_in_ready = true;
-//    return;
-//}
-
 Infrastructure* Gate_In_Manager::check_free_platform() // check available platform that leads to an available mine group
 {
     std::pair<Infrastructure*, int>* available_mine = this->check_free_mine();
@@ -406,11 +340,6 @@ std::pair<Infrastructure*, int>* Gate_In_Manager::check_free_mine() // return mi
     }
     return nullptr;
 }
-
-//void Gate_In_Manager::setMultiplier(int newMultiplier)
-//{
-//    this->multiplier = newMultiplier;
-//}
 
 void Gate_In_Manager::left_initialization()
 {
@@ -498,7 +427,7 @@ void Gate_In_Manager::left_hand_initialization()
     this->map[4][14]->addLeft(this->map[3][13]); // kiri atas
     this->map[4][14]->addRight(this->map[5][15]); // kanan bawah
     this->map[4][18]->addLeft(this->map[3][17]); // kiri atas
-    this->map[4][18]->addRight(this->map[5][19]); // kanan bawah
+    this->map[4][18]->addRight(this->map[4][19]); // kanan kanan
     this->map[4][20]->addLeft(this->map[5][19]); // kiri bawah
     // Line IV
     this->map[6][7]->addLeft(this->map[5][6]); // kiri atas
@@ -679,13 +608,13 @@ void Gate_In_Manager::right_hand_initialization()
 
     // Branches
     // Line I
+    this->map[0][33]->addLeft(this->map[1][32]); // kiri bawah
     this->map[0][33]->addRight(this->map[1][34]); // kanan bawah
-    this->map[0][34]->addLeft(this->map[1][33]); // kiri bawah
     this->map[0][37]->addLeft(this->map[1][36]); // kiri bawah
 
     // Line II
+    this->map[2][31]->addRight(this->map[1][32]); // kanan atas
     this->map[2][32]->addLeft(this->map[3][31]); // kiri bawah
-    this->map[2][32]->addRight(this->map[1][33]); // kanan atas
     this->map[2][35]->addLeft(this->map[1][34]); // kiri atas
     this->map[2][35]->addLeft(this->map[3][34]); // kiri bawah
     this->map[2][35]->addRight(this->map[1][36]); // kanan atas
@@ -727,8 +656,8 @@ void Gate_In_Manager::right_hand_initialization()
 
     // 2nd Branches
     // Line I-II
-    this->map[1][33]->addLeft(this->map[2][32]); // kiri bawah
-    this->map[1][33]->addRight(this->map[0][34]); // kanan atas
+    this->map[1][32]->addLeft(this->map[2][31]); // kiri bawah
+    this->map[1][32]->addRight(this->map[0][33]); // kanan atas
     this->map[1][34]->addLeft(this->map[0][33]); // kiri atas
     this->map[1][34]->addRight(this->map[2][35]); // kanan bawah
     this->map[1][36]->addLeft(this->map[2][35]); // kiri bawah
@@ -846,5 +775,19 @@ void Gate_In_Manager::platform_hand_initialization()
     {
         this->map[2*i][22]->addLeft(this->map[2*i][21]);
         this->map[2*i][22]->addRight(this->map[2*i][23]);
+    }
+}
+
+void Gate_In_Manager::map_coloring()
+{
+    for(int i = 0; i < MAX_Y; i++)
+    {
+        for(int j = 0; j < MAX_X; j++)
+        {
+            if(this->map[i][j])
+            {
+                emit notify_color(j, i, this->map[i][j]->getType());
+            }
+        }
     }
 }

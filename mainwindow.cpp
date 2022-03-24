@@ -7,35 +7,46 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    for(int i = 0; i < PLATFORM_SUM; i++){
-        train_labels[i] = new QLabel(this);
-        train_labels[i]->setGeometry(1790, 472, 111, 41);
-    }
-
-    ui->in_waiting_list->setStyleSheet("border: 1px solid black;");
-
     gate_in = new Gate_In_Manager(this);
     train_create = new Train_maker(this);
     canvas_animation = new Animation(this);
 
+    map_labels = new QLabel*[MAX_X * MAX_Y];
+    for(int i = 0; i < MAX_X * MAX_Y; i++)
+    {
+        this->map_labels[i] = new QLabel(this);
+        int x = i % MAX_X;
+        int y = i / MAX_X;
+        this->map_labels[i]->setGeometry(40*x, 30*y, 40, 30);
+        this->map_labels[i]->setAutoFillBackground(true);
+    }
+
+    train_labels = new std::pair<QLabel*, Train*>*[PLATFORM_SUM+PLATFORM_SUM];
+    for(int i = 0; i < PLATFORM_SUM+PLATFORM_SUM; i++)
+    {
+        this->train_labels[i] = new std::pair<QLabel*, Train*>;
+        this->train_labels[i]->first = new QLabel(this);
+        this->train_labels[i]->second = nullptr;
+        this->train_labels[i]->first->setGeometry(40*(MAX_X-1), 0, 40, 30);
+        this->train_labels[i]->first->setStyleSheet("font: 10pt; color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border: 2px solid black");
+        train_labels[i]->first->setAutoFillBackground(true);
+        this->train_labels[i]->first->hide();
+    }
+
+    connect(train_create, SIGNAL(notify_train_incoming(Train*)), gate_in, SLOT(notified_train_incoming(Train*)));
+
+    connect(canvas_animation, SIGNAL(notify_move_train(Train*,Infrastructure*)), this, SLOT(notified_move_train(Train*,Infrastructure*)));
+    connect(canvas_animation, SIGNAL(notify_train_arrived(Train*,Infrastructure*, Infrastructure*)), gate_in, SLOT(notified_train_arrived(Train*,Infrastructure*, Infrastructure*)));
+
+    connect(gate_in, SIGNAL(notify_color(int,int,int)), this, SLOT(notified_color(int,int,int)));
+    connect(gate_in, SIGNAL(notify_train_label_attach(Train*)), this, SLOT(notified_train_label_attach(Train*)));
+    connect(gate_in, SIGNAL(notify_put_train_on_canvas(Train*)), this, SLOT(notified_put_train_on_canvas(Train*)));
     connect(gate_in, SIGNAL(notify_train_depart(std::deque<Infrastructure*>*)), canvas_animation, SLOT(notified_train_depart(std::deque<Infrastructure*>*)));
-    connect(canvas_animation, SIGNAL(notify_train_arrived(Infrastructure*)), gate_in, SLOT(notified_train_arrived(Infrastructure*)));
+    connect(gate_in, SIGNAL(notify_change_color(Train*)), this, SLOT(notified_change_color(Train*)));
+    connect(gate_in, SIGNAL(notify_train_label_detach(Train*)), this, SLOT(notified_train_label_detach(Train*)));
 
+    this->gate_in->map_coloring();
     this->start_simulation();
-
-//    connect(gate_in, SIGNAL(update_cooldown_canvas(int)), this, SLOT(update_out_cooldown(int))); // update waktu
-//    connect(gate_in, SIGNAL(time_update(int)), this, SLOT(time_update(int))); // update jam
-//    connect(gate_in, SIGNAL(update_in_waiting_list(QString)), this, SLOT(update_in_waiting_list(QString))); // connect waiting list dari luar
-//    connect(train_create, SIGNAL(notify_gate_in(Train*)), gate_in, SLOT(on_new_train_notified(Train*))); // Train to station
-//    connect(gate_in, SIGNAL(train_in_entrance(int,Train*)), this, SLOT(train_entering(int,Train*))); // dari gate bikin kereta
-//    connect(this, SIGNAL(notify_animation(int,bool,Train*)), canvas_animation, SLOT(start_animating(int,bool,Train*))); // dari canvas suruh gerakin animasi
-//    connect(canvas_animation, SIGNAL(move_entering_on_canvas(int)), this, SLOT(move_train(int))); // dari animasi gerakin di canvas
-//    connect(canvas_animation, SIGNAL(train_arrived_on_platform(int,Train*)), gate_in, SLOT(set_train_on_platform(int,Train*))); // notif bahwa kereta sampai
-//    connect(gate_in, SIGNAL(change_color_to_red(int)), this, SLOT(change_to_red_train(int))); // ubah kereta jadi merah kalo mau keluar
-//    connect(gate_in, SIGNAL(notify_animation(int,bool,Train*)), canvas_animation, SLOT(start_animating(int,bool,Train*))); // notif untuk keluarin kereta
-//    connect(canvas_animation, SIGNAL(move_exiting_on_canvas(int)), this, SLOT(move_train(int))); // dari animasi gerakin di canvas
-//    connect(canvas_animation, SIGNAL(destroy_train(int)), this, SLOT(reset_train_on_canvas(int))); // delete kereta di canvas
-//    connect(this, SIGNAL(notify_gate_to_cooldown(int)), gate_in, SLOT(notified_to_remove_train(int))); // dari canvas delete kereta di gate
 }
 
 MainWindow::~MainWindow()
@@ -46,105 +57,92 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::train_entering(int i, Train* input)
+void MainWindow::notified_train_label_attach(Train *train_input)
 {
-    train_labels[i]->setText("Train " + QString::number(input->getId()));
-    train_labels[i]->setStyleSheet("background-color:rgb(205,255,205);font: 18pt;");
-    train_labels[i]->setAutoFillBackground(true);
-    emit notify_animation(i, true, input);
+    for(unsigned int i = 0; i < PLATFORM_SUM+PLATFORM_SUM; i++)
+    {
+        if(this->train_labels[i]->second == nullptr)
+        {
+            this->train_labels[i]->second = train_input;
+            return;
+        }
+    }
 }
 
-void MainWindow::move_train(int i)
+void MainWindow::notified_put_train_on_canvas(Train *train_input)
 {
-    int y = 472 - (i * 50);
-    if(train_labels[i]->x() > 1650)
-        train_labels[i]->move(train_labels[i]->x()-140, train_labels[i]->y()); // kalau mau pakai smoother animation, di bagi dengan speed yang diinginkan
-    else if(train_labels[i]->x() > 710)
+    for(unsigned int i = 0; i < PLATFORM_SUM+PLATFORM_SUM; i++)
     {
-        if(train_labels[i]->y() > y)
-            train_labels[i]->move(train_labels[i]->x(), train_labels[i]->y()-50); // kalau mau pakai smoother animation, di bagi dengan speed yang diinginkan
-        train_labels[i]->move(train_labels[i]->x()-90, train_labels[i]->y()); // kalau mau pakai smoother animation, di bagi dengan speed yang diinginkan
+        if(this->train_labels[i]->second == train_input)
+        {
+            train_labels[i]->first->setText(QString::number(train_input->getId()));
+            this->train_labels[i]->first->show();
+            return;
+        }
     }
+}
+
+void MainWindow::notified_move_train(Train* train_input,Infrastructure* now)
+{
+    int x = now->getX() - train_input->getBefore_x();
+    int y = now->getY() - train_input->getBefore_y();
+    for(unsigned int i = 0; i < PLATFORM_SUM+PLATFORM_SUM; i++)
+    {
+        if(this->train_labels[i]->second == train_input)
+        {
+            this->train_labels[i]->first->move(this->train_labels[i]->first->x() + x*40, this->train_labels[i]->first->y() + y*30);
+            return;
+        }
+    }
+}
+
+void MainWindow::notified_train_label_detach(Train *train_input)
+{
+    for(unsigned int i = 0; i < PLATFORM_SUM+PLATFORM_SUM; i++)
+    {
+        if(this->train_labels[i]->second == train_input)
+        {
+            this->train_labels[i]->second = nullptr;
+            train_labels[i]->first->move(40*(MAX_X-1), 0);
+            train_labels[i]->first->setStyleSheet("font: 10pt; color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border: 2px solid black");
+            train_labels[i]->first->setText("");
+            train_labels[i]->first->hide();
+            return;
+        }
+    }
+}
+
+void MainWindow::notified_color(int x, int y, int type)
+{
+    int y2 = (39) * y;
+    if(type == 0)
+        this->map_labels[y2 + x]->setStyleSheet("background-color: rgb(205, 255, 205); border: 1px solid black");
+    else if(type == 1)
+        this->map_labels[y2 + x]->setStyleSheet("background-color: rgb(205, 205, 255); border: 1px solid black");
     else
+        this->map_labels[y2 + x]->setStyleSheet("background-color: rgb(255, 205, 205); border: 1px solid black");
+}
+
+void MainWindow::notified_change_color(Train *train_input)
+{
+    for(unsigned int i = 0; i < PLATFORM_SUM+PLATFORM_SUM; i++)
     {
-        if(train_labels[i]->y() < 472 && train_labels[i]->x() < (710 - 90 * (PLATFORM_SUM - i)))
-            train_labels[i]->move(train_labels[i]->x(), train_labels[i]->y()+50); // kalau mau pakai smoother animation, di bagi dengan speed yang diinginkan
-        train_labels[i]->move(train_labels[i]->x()-90, train_labels[i]->y()); // kalau mau pakai smoother animation, di bagi dengan speed yang diinginkan
+        if(this->train_labels[i]->second == train_input)
+        {
+            this->train_labels[i]->first->setStyleSheet("font: 10pt; color: rgb(0, 0, 0); background-color: rgb(255, 155, 155); border: 2px solid black");
+            return;
+        }
     }
-}
-
-void MainWindow::reset_train_on_canvas(int i)
-{
-    train_labels[i]->move(1790, 472);
-    train_labels[i]->setText("");
-    train_labels[i]->setStyleSheet("font: 18pt;");
-    train_labels[i]->setAutoFillBackground(false);
-    emit notify_gate_to_cooldown(i);
-}
-
-void MainWindow::update_out_cooldown(int i)
-{
-    ui->out_cd_counter->display(i);
-}
-
-void MainWindow::time_update(int time)
-{
-    int second = time % 60;
-    int minute = time / 60;
-    int hour = minute / 60;
-    ui->clock->setText(QString::number(hour / 10) + QString::number(hour % 10) + QString::fromStdString(":") + QString::number((minute / 10) % 6) + QString::number(minute % 10) + QString::fromStdString(":") + QString::number(second / 10) + QString::number(second % 10));
-}
-
-void MainWindow::change_to_red_train(int i)
-{
-    train_labels[i]->setStyleSheet("background-color:rgb(255,205,205);font: 18pt;");
-}
-
-void MainWindow::update_in_waiting_list(QString i)
-{
-    ui->in_waiting_list->setText(i);
 }
 
 void MainWindow::start_simulation()
 {
     gate_in->start();
     canvas_animation->start();
-//    train_create->start();
+    train_create->start();
 }
 
-void MainWindow::on_start_button_clicked()
+void MainWindow::background_initialization()
 {
-    ui->start_background->hide();
-    ui->start_button->hide();
-//    gate_in->setGate_out_cooldown(ui->train_interval_slider->value());
-    train_create->setTrain_interval(ui->train_interval_slider->value());
-    ui->multiplier_current->display(ui->multiplier_slider->value());
-    ui->train_interval_current->display(ui->train_interval_slider->value());
-    ui->stay_duration_current->display(ui->stay_duration_slider->value());
-    this->start_simulation();
+
 }
-
-
-void MainWindow::on_multiplier_slider_sliderMoved(int position)
-{
-//    gate_in->setMultiplier(position);
-    canvas_animation->setMultiplier(position);
-    train_create->setMultiplier(position);
-    ui->multiplier_current->display(position);
-}
-
-
-void MainWindow::on_train_interval_slider_sliderMoved(int position)
-{
-    train_create->setTrain_interval(position);
-    ui->train_interval_current->display(position);
-//    gate_in->setGate_out_cooldown(position);
-}
-
-
-void MainWindow::on_stay_duration_slider_sliderMoved(int position)
-{
-    train_create->setStay_duration(position);
-    ui->stay_duration_current->display(position);
-}
-
