@@ -16,16 +16,10 @@ Gate_In_Manager::Gate_In_Manager(QObject *parent) : QThread(parent)
     this->right_hand_initialization();
     in = map[0][MAX_X-1];
     out = map[2][MAX_X-1];
-
-    Train* test = new Train(45);
-    Train* test2 = new Train(25);
-    incoming_train.push_back(test);
-    incoming_train.push_back(test2);
 }
 
 void Gate_In_Manager::run()
 {
-    int tmp_cooldown = -1;
     while(true)
     {
         QMutex m;
@@ -55,34 +49,9 @@ void Gate_In_Manager::run()
             }
         }
         qDebug() << timer;
-        //        emit time_update(this->timer);
         timer++;
-        tmp_cooldown = train_out_cooldown;
-        if(tmp_cooldown == 1)
-        {
-            gate_out_ready = true;
-        }
-        if(tmp_cooldown == 0)
-            train_out_cooldown = -1;
 
         // kurangin stay duration setiap kereta di platform dan mine
-        for(int i = 0; i < PLATFORM_SUM; i++)
-        {
-            if(platform_list[i]->getTrain() != nullptr)
-            {
-                if(platform_list[i]->getTrain()->getStop_duration() > 0)
-                    platform_list[i]->getTrain()->stop_reduction();
-                if(platform_list[i]->getTrain()->getStop_duration() == 0 && platform_list[i]->getTrain()->getOut_waiting_list() == false)
-                {
-                    if(platform_list[i]->getTrain()->getDirection() == ENTERING)
-                        outcoming_train_pathway.push_back(platform_list[i]);
-                    else if(platform_list[i]->getTrain()->getDirection() == EXITING)
-                        outcoming_train_gate.push_back(platform_list[i]);
-                    platform_list[i]->getTrain()->setOut_waiting_list(true);
-                    // emit change_color_to_red(i);
-                }
-            }
-        }
         for(int i = 0; i < 3; i++)
         {
             for(unsigned int j = 0; j < mine_group[i].size(); j++)
@@ -100,10 +69,22 @@ void Gate_In_Manager::run()
             }
         }
 
-        // kalo ada kereta yang mau masuk, dan gate in ready, dan ada platform kosong, masukin ke platform
-        if(!incoming_train.empty() && gate_in_ready)
+        for(int i = 0; i < PLATFORM_SUM; i++)
         {
-            this->put_train_at_entrance();
+            if(platform_list[i]->getTrain() != nullptr)
+            {
+                if(platform_list[i]->getTrain()->getStop_duration() > 0)
+                    platform_list[i]->getTrain()->stop_reduction();
+                if(platform_list[i]->getTrain()->getStop_duration() == 0 && platform_list[i]->getTrain()->getOut_waiting_list() == false)
+                {
+                    if(platform_list[i]->getTrain()->getDirection() == ENTERING)
+                        outcoming_train_pathway.push_back(platform_list[i]);
+                    else if(platform_list[i]->getTrain()->getDirection() == EXITING)
+                        outcoming_train_gate.push_back(platform_list[i]);
+                    platform_list[i]->getTrain()->setOut_waiting_list(true);
+                    // emit change_color_to_red(i);
+                }
+            }
         }
 
         // kalau ada yang di queue siap gerak
@@ -112,12 +93,12 @@ void Gate_In_Manager::run()
         if(!outcoming_train_pathway.empty() && pathway == true)
             this->train_depart(outcoming_train_pathway.front());
 
-        if(tmp_cooldown > 0)
+        // kalo ada kereta yang mau masuk, dan gate in ready, dan ada platform kosong, masukin ke platform
+        if(!incoming_train.empty() && gate_in_ready)
         {
-            tmp_cooldown--;
-            train_out_cooldown--;
-            //            emit update_cooldown_canvas(tmp_cooldown);
+            this->put_train_at_entrance();
         }
+
         this->msleep(1000 / multiplier);
         m.unlock();
     }
@@ -127,6 +108,7 @@ void Gate_In_Manager::notified_train_arrived(Infrastructure *destination)
 {
     if(destination == out)
     {
+        emit notify_train_label_detach(destination->getTrain());
         delete destination->getTrain();
         destination->setTrain(nullptr);
         destination->setOccupied(false);
@@ -151,6 +133,13 @@ void Gate_In_Manager::notified_train_arrived(Infrastructure *destination)
     return;
 }
 
+void Gate_In_Manager::notified_train_incoming(Train *train_input)
+{
+        incoming_train.push_back(train_input);
+        emit notify_train_label_attach(train_input);
+        return;
+}
+
 void Gate_In_Manager::put_train_at_entrance()
 {
     Train* tmp = incoming_train.front();
@@ -164,6 +153,7 @@ void Gate_In_Manager::put_train_at_entrance()
     std::deque <Infrastructure*> *path = this->navigate(in, this->check_free_platform(), in->getTrain()->getDirection());
     if(path)
     {
+        emit notify_put_train_on_canvas(tmp);
         emit notify_train_depart(path);
     }
     else
@@ -348,16 +338,6 @@ std::deque<Infrastructure *> *Gate_In_Manager::navigate(Infrastructure *start_po
 //        platforms[pos] = nullptr;
 //    train_out_cooldown = gate_out_cooldown;
 //    emit update_cooldown_canvas(train_out_cooldown);
-//    return;
-//}
-
-//void Gate_In_Manager::on_new_train_notified(Train* input) // finished - put a train in waiting list
-//{
-//    incoming_train.push_back(input);
-//    std::string in_waiting_list = "Next Train: ";
-//    for(unsigned int i = 0; i < incoming_train.size(); i++)
-//        in_waiting_list.append("Train " + std::to_string(incoming_train[i]->getId()) + ", ");
-//    emit update_in_waiting_list(QString::fromStdString(in_waiting_list));
 //    return;
 //}
 

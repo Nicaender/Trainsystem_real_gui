@@ -10,17 +10,22 @@ void Animation::run()
     while(true)
     {
         QMutex m;
-        m.lock();
+
         if(!this->path_list.empty())
         {
             Infrastructure *tmp_before, *tmp_after;
             for(unsigned int i = 0; i < path_list.size(); i++)
             {
+                m.lock();
                 tmp_before = path_list[i].front();
                 path_list[i].pop_front();
                 tmp_after = path_list[i].front();
                 tmp_after->setTrain(tmp_before->getTrain());
                 tmp_before->setTrain(nullptr);
+                tmp_after->getTrain()->setBefore_x(tmp_before->getX());
+                tmp_after->getTrain()->setBefore_y(tmp_before->getY());
+                m.unlock();
+                emit notify_move_train(tmp_after);
                 if(path_list[i].size() == 1)
                 {
                     while(!copy_path_list[i].empty())
@@ -36,7 +41,6 @@ void Animation::run()
             }
             this->msleep(1000 / multiplier);
         }
-        m.unlock();
     }
 }
 

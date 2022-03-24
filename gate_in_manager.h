@@ -26,7 +26,10 @@ public:
 //    void setGate_out_cooldown(int newGate_out_cooldown);
 
 signals:
+    void notify_train_label_attach(Train*);
+    void notify_put_train_on_canvas(Train*);
     void notify_train_depart(std::deque <Infrastructure*>*);
+    void notify_train_label_detach(Train*);
 //    void notify_animation(int, bool, Train*); // kalau true, suruh animasi masuk, false = animasi keluar
 //    void update_cooldown_canvas(int);
 //    void time_update(int);
@@ -35,6 +38,7 @@ signals:
 
 public slots:
     void notified_train_arrived(Infrastructure*);
+    void notified_train_incoming(Train*);
 //    void notified_to_remove_train(int);
 //    void on_new_train_notified(Train*);
 //    void set_train_on_platform(int, Train*);
@@ -45,11 +49,9 @@ private:
 //    void notify_train_exiting_platform(int pos, Train*);
     std::deque<Infrastructure*> *navigate(Infrastructure* start_pos, Infrastructure* end_pos, bool direction);
 
-    int gate_out_cooldown = -1;
-    int train_out_cooldown = -1;
     Infrastructure *check_free_platform();
     bool gate_in_ready = true, gate_out_ready = true, pathway = true;
-    int multiplier = 1;
+    int multiplier = 5;
     int timer = 0;
 
     Infrastructure* map[MAX_Y][MAX_X];

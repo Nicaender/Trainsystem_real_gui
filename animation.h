@@ -21,6 +21,7 @@ public:
 
 signals:
     void notify_train_arrived(Infrastructure*);
+    void notify_move_train(Infrastructure*);
 
 public slots:
     void notified_train_depart(std::deque <Infrastructure*>*);
@@ -28,7 +29,7 @@ public slots:
 private:
     std::vector<std::deque<Infrastructure*>> path_list;
     std::vector<std::deque<Infrastructure*>> copy_path_list;
-    int multiplier = 1;
+    int multiplier = 5;
 };
 
 #endif // ANIMATION_H

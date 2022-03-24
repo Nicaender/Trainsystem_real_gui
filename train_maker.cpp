@@ -21,7 +21,7 @@ void Train_maker::run()
         {
             Train* new_train = new Train((1+rand()%999));
             counter = this->train_interval;
-            emit notify_gate_in(new_train);
+            emit notify_train_incoming(new_train);
         }
         this->msleep(1000 / multiplier);
         m.unlock();
@@ -31,11 +31,6 @@ void Train_maker::run()
 void Train_maker::setMultiplier(int newMultiplier)
 {
     this->multiplier = newMultiplier;
-}
-
-void Train_maker::setStay_duration(int newStay_duration)
-{
-    stay_duration = newStay_duration;
 }
 
 void Train_maker::setTrain_interval(int newTrain_interval)
