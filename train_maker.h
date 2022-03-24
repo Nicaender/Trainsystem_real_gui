@@ -27,7 +27,7 @@ signals:
 private:
     int multiplier = 1;
     int stay_duration = 15;
-    int train_interval = -1;
+    int train_interval = 10;
 };
 
 #endif // TRAIN_MAKER_H

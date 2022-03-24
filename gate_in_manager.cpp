@@ -15,34 +15,13 @@ Gate_In_Manager::Gate_In_Manager(QObject *parent) : QThread(parent)
     this->left_hand_initialization();
     this->platform_hand_initialization();
     this->right_hand_initialization();
+    in = map[0][MAX_X-1];
+    out = map[2][MAX_X-1];
 
-    std::string cout;
-    for(int i = 0; i < MAX_Y; i++)
-    {
-        for(int j = 0; j < MAX_X; j++)
-        {
-            if(this->map[i][j])
-            {
-                if(this->map[i][j]->getLeft_list().size() > 0  && this->map[i][j]->getLeft_list().at(0))
-                    cout.append("<-");
-                if(this->map[i][j]->getType() == RAIL)
-                    cout.append("R");
-                if(this->map[i][j]->getType() == MINE)
-                    cout.append("M");
-                if(this->map[i][j]->getType() == PLATFORM)
-                    cout.append("P");
-                if(this->map[i][j]->getRight_list().size() > 0  && this->map[i][j]->getRight_list().at(0))
-                    cout.append("-> ");
-            }
-            else
-                cout.append("      ");
-        }
-        qDebug() << QString::fromStdString(cout);
-        cout.clear();
-    }
-
-    if(this->map[4][22]->getRight_list().at(0))
-        qDebug() << "Ada tetangganya si platform 3";
+    Train* test = new Train(45);
+    Train* test2 = new Train(25);
+    incoming_train.push_back(test);
+    incoming_train.push_back(test2);
 }
 
 void Gate_In_Manager::run()
@@ -52,7 +31,32 @@ void Gate_In_Manager::run()
     {
         QMutex m;
         m.lock();
-        emit time_update(this->timer);
+
+        for(int z = 0; z < 8; z++)
+        {
+            std::string cout;
+            for(int i = 0; i < MAX_Y; i++)
+            {
+                for(int j = 0; j < MAX_X; j++)
+                {
+                    if(this->map[i][j])
+                    {
+                        if(this->map[i][j]->getTrain() != nullptr)
+                        {
+                            cout.append("K");
+                        }
+                        else
+                            cout.append(" ");
+                    }
+                    else
+                        cout.append(" ");
+                }
+                qDebug() << QString::fromStdString(cout);
+                cout.clear();
+            }
+        }
+        qDebug() << timer;
+        //        emit time_update(this->timer);
         timer++;
         tmp_cooldown = train_out_cooldown;
         if(tmp_cooldown == 1)
@@ -62,109 +66,351 @@ void Gate_In_Manager::run()
         if(tmp_cooldown == 0)
             train_out_cooldown = -1;
 
-        // kurangin stay duration setiap kereta di platform
-        //        for(int i = 0; i < PLATFORM_SUM; i++)
-        //        {
-        //            if(platforms[i])
-        //            {
-        //                if(platforms[i]->getStop_duration() > 0)
-        //                    platforms[i]->stop_reduction();
-        //                if(platforms[i]->getStop_duration() == 0 && platforms[i]->getOut_waiting_list() == false)
-        //                {
-        //                    outcoming_train_pos.push_back(i);
-        //                    platforms[i]->setOut_waiting_list(true);
-        //                    emit change_color_to_red(i);
-        //                }
-        //            }
-        //        }
+        // kurangin stay duration setiap kereta di platform dan mine
+        for(int i = 0; i < PLATFORM_SUM; i++)
+        {
+            if(platform_list[i]->getTrain() != nullptr)
+            {
+                if(platform_list[i]->getTrain()->getStop_duration() > 0)
+                    platform_list[i]->getTrain()->stop_reduction();
+                if(platform_list[i]->getTrain()->getStop_duration() == 0 && platform_list[i]->getTrain()->getOut_waiting_list() == false)
+                {
+                    if(platform_list[i]->getTrain()->getDirection() == ENTERING)
+                        outcoming_train_pathway.push_back(platform_list[i]);
+                    else if(platform_list[i]->getTrain()->getDirection() == EXITING)
+                        outcoming_train_gate.push_back(platform_list[i]);
+                    platform_list[i]->getTrain()->setOut_waiting_list(true);
+                    // emit change_color_to_red(i);
+                }
+            }
+        }
+        for(int i = 0; i < 3; i++)
+        {
+            for(unsigned int j = 0; j < mine_group[i].size(); j++)
+            {
+                if(mine_group[i].at(j)->getTrain() != nullptr)
+                {
+                    if(mine_group[i].at(j)->getTrain()->getStop_duration() > 0)
+                        mine_group[i].at(j)->getTrain()->stop_reduction();
+                    if(mine_group[i].at(j)->getTrain()->getStop_duration() == 0 && mine_group[i].at(j)->getTrain()->getOut_waiting_list() == false)
+                    {
+                        outcoming_train_pathway.push_back(mine_group[i].at(j));
+                        mine_group[i].at(j)->getTrain()->setOut_waiting_list(true);
+                    }
+                }
+            }
+        }
 
         // kalo ada kereta yang mau masuk, dan gate in ready, dan ada platform kosong, masukin ke platform
-        if(!incoming_train.empty() && gate_in_ready && this->check_free_platform() != -1)
+        if(!incoming_train.empty() && gate_in_ready)
         {
-            this->notify_train_into_platform(this->check_free_platform());
-            gate_in_ready = false;
+            this->put_train_at_entrance();
         }
 
-        // kalau ada yang di queue keluar
-        if(!outcoming_train_pos.empty() && gate_out_ready)
-        {
-            //            this->notify_train_exiting_platform(outcoming_train_pos.front(), platforms[outcoming_train_pos.front()]);
-            gate_out_ready = false;
-        }
+        // kalau ada yang di queue siap gerak
+        if(!outcoming_train_gate.empty() && gate_out_ready == true)
+            this->train_depart(outcoming_train_gate.front());
+        if(!outcoming_train_pathway.empty() && pathway == true)
+            this->train_depart(outcoming_train_pathway.front());
 
         if(tmp_cooldown > 0)
         {
             tmp_cooldown--;
             train_out_cooldown--;
-            emit update_cooldown_canvas(tmp_cooldown);
+            //            emit update_cooldown_canvas(tmp_cooldown);
         }
         this->msleep(1000 / multiplier);
         m.unlock();
     }
 }
 
-void Gate_In_Manager::notify_train_into_platform(int pos) // finished - tell animation and mainwindow to move the train
+void Gate_In_Manager::notified_train_arrived(Infrastructure *destination)
 {
-    std::string in_waiting_list = "Next Train: ";
+    if(destination == out)
+    {
+        delete destination->getTrain();
+        destination->setTrain(nullptr);
+        destination->setOccupied(false);
+        gate_out_ready = true;
+        return;
+    }
+    else if(destination->getType() == PLATFORM && destination->getTrain()->getDirection() == ENTERING)
+    {
+        gate_in_ready = true;
+    }
+    else if(destination->getType() == PLATFORM && destination->getTrain()->getDirection() == EXITING)
+    {
+        pathway = true;
+    }
+    else if(destination->getType() == MINE && destination->getTrain()->getDirection() == ENTERING)
+    {
+        pathway = true;
+        destination->getTrain()->setDirection(EXITING);
+    }
+    destination->getTrain()->add_duration(destination->getStay());
+    destination->setOccupied(true);
+    return;
+}
+
+void Gate_In_Manager::put_train_at_entrance()
+{
     Train* tmp = incoming_train.front();
     incoming_train.pop_front();
-    emit train_in_entrance(pos, tmp);
-    for(unsigned int i = 0; i < incoming_train.size(); i++)
-        in_waiting_list.append("Train " + std::to_string(incoming_train[i]->getId()) + ", ");
-    emit update_in_waiting_list(QString::fromStdString(in_waiting_list));
-    return;
-}
-
-void Gate_In_Manager::notify_train_exiting_platform(int pos, Train* input) // finished - tell animation and mainwindow to move the train
-{
-    emit notify_animation(pos, false, input);
-    outcoming_train_pos.pop_front();
-    return;
-}
-
-void Gate_In_Manager::setGate_out_cooldown(int newGate_out_cooldown)
-{
-    gate_out_cooldown = newGate_out_cooldown;
-}
-
-void Gate_In_Manager::notified_to_remove_train(int pos) // finished - delete the train after the train leaves the station
-{
-    //    delete platforms[pos];
-    //    platforms[pos] = nullptr;
-    train_out_cooldown = gate_out_cooldown;
-    emit update_cooldown_canvas(train_out_cooldown);
-    return;
-}
-
-void Gate_In_Manager::on_new_train_notified(Train* input) // finished - put a train in waiting list
-{
-    incoming_train.push_back(input);
     std::string in_waiting_list = "Next Train: ";
     for(unsigned int i = 0; i < incoming_train.size(); i++)
         in_waiting_list.append("Train " + std::to_string(incoming_train[i]->getId()) + ", ");
-    emit update_in_waiting_list(QString::fromStdString(in_waiting_list));
+    in->setTrain(tmp);
+    in->setOccupied(true);
+    gate_in_ready = false;
+    std::deque <Infrastructure*> *path = this->navigate(in, this->check_free_platform(), in->getTrain()->getDirection());
+    if(path)
+    {
+        emit notify_train_depart(path);
+    }
+    else
+    {
+        in->setTrain(nullptr);
+        in->setOccupied(false);
+        gate_in_ready = true;
+        incoming_train.push_front(tmp);
+    }
     return;
 }
 
-void Gate_In_Manager::set_train_on_platform(int pos, Train* input) // help function - akan dipanggil oleh animation kalau sudah sampai kesana
+void Gate_In_Manager::train_depart(Infrastructure* start) // signal the train to move to its destination
 {
-    //    platforms[pos] = input;
-    gate_in_ready = true;
+    if(start->getTrain()->getDirection() == ENTERING) // kalo masuk dari platform ke mine
+    {
+        std::pair<Infrastructure*, int>* available_mine = this->check_free_mine();
+        std::deque <Infrastructure*> *path = this->navigate(start, available_mine->first, start->getTrain()->getDirection());
+        if(path)
+        {
+            outcoming_train_pathway.pop_front();
+            start->getTrain()->setOut_waiting_list(false);
+            emit notify_train_depart(path);
+            pathway = false;
+        }
+        else
+            pathway = true;
+        delete available_mine;
+    }
+    else if(start->getTrain()->getDirection() == EXITING && start->getType() == PLATFORM) // kalo keluar dari platform ke out
+    {
+        std::deque <Infrastructure*> *path = this->navigate(start, out, start->getTrain()->getDirection());
+        if(path)
+        {
+            outcoming_train_gate.pop_front();
+            start->getTrain()->setOut_waiting_list(false);
+            emit notify_train_depart(path);
+            gate_out_ready = false;
+        }
+        else
+            gate_out_ready = true;
+    }
+    else if(start->getTrain()->getDirection() == EXITING) // kalo keluar dari mine ke platform
+    {
+        for(int i = 0; i < PLATFORM_SUM; i++)
+        {
+            std::deque <Infrastructure*> *path = this->navigate(start, platform_list[i], start->getTrain()->getDirection());
+            if(path)
+            {
+                outcoming_train_pathway.pop_front();
+                start->getTrain()->setOut_waiting_list(false);
+                emit notify_train_depart(path);
+                pathway = false;
+                break;
+            }
+            else
+                pathway = true;
+        }
+    }
     return;
 }
 
-int Gate_In_Manager::check_free_platform() // help function - check available platform
+//void Gate_In_Manager::notify_train_exiting_platform(int pos, Train* input) // finished - tell animation and mainwindow to move the train
+//{
+//    emit notify_animation(pos, false, input);
+//    outcoming_train_pos.pop_front();
+//    return;
+//}
+
+std::deque<Infrastructure *> *Gate_In_Manager::navigate(Infrastructure *start_pos, Infrastructure *end_pos, bool direction)
 {
-    // cari platform yang kosong
-    //    for(int i = 0; i < PLATFORM_SUM; i++)
-    //    {
-    //        if(!platforms[i])
-    //        {
-    //            return i;
-    //        }
-    //    }
-    return -1;
+    Infrastructure *current = start_pos, *before, *backtrack = end_pos;
+    std::vector<std::pair<Infrastructure *, Infrastructure *>> before_after_list;
+    std::stack<Infrastructure *> branches;
+
+    while(current != end_pos)
+    {
+        before = current;
+        if(direction == ENTERING)
+        {
+            if(current->getLeft_list().size() > 0)
+            {
+
+                if(current->getLeft_list().size() > 1)
+                    for(unsigned int i = 1; i < current->getLeft_list().size(); i++)
+                    {
+                        if(current->getLeft_list().at(i)->getOccupied() == false)
+                        {
+                            branches.push(current->getLeft_list().at(i));
+                            before_after_list.push_back({current, current->getLeft_list().at(i)});
+                        }
+                    }
+                if(current->getLeft_list().at(0)->getOccupied() == false)
+                {
+                    before_after_list.push_back({current, current->getLeft_list().at(0)});
+                    current = current->getLeft_list().at(0);
+                }
+            }
+        }
+        else
+        {
+            if(current->getRight_list().size() > 0)
+            {
+
+                if(current->getRight_list().size() > 1)
+                    for(unsigned int i = 1; i < current->getRight_list().size(); i++)
+                    {
+                        if(current->getRight_list().at(i)->getOccupied() == false)
+                        {
+                            branches.push(current->getRight_list().at(i));
+                            before_after_list.push_back({current, current->getRight_list().at(i)});
+                        }
+                    }
+                if(current->getRight_list().at(0)->getOccupied() == false)
+                {
+                    before_after_list.push_back({current, current->getRight_list().at(0)});
+                    current = current->getRight_list().at(0);
+                }
+            }
+        }
+        if(current->getType() == end_pos->getType() && end_pos->getType() == PLATFORM)
+        {
+            if(current != end_pos || end_pos->getOccupied() == true)
+            {
+                if(branches.empty()) // if it is empty, that means no path to that way right now or not possible
+                    return nullptr;
+                current = branches.top();
+                branches.pop();
+            }
+        }
+        else if(current->getLeft_list().size() > 1 && end_pos->getType() == MINE)
+        {
+            for(unsigned int i = 0; i < current->getLeft_list().size(); i++)
+            {
+                if(current->getLeft_list().at(i) == end_pos && end_pos->getOccupied() == false)
+                {
+                    before_after_list.push_back({current, current->getLeft_list().at(i)});
+                    current = current->getLeft_list().at(i);
+                    break;
+                }
+            }
+        }
+        if(before == current)
+        {
+            if(branches.empty()) // if it is empty, that means no path to that way right now or not possible
+                return nullptr;
+            current = branches.top();
+            branches.pop();
+        }
+    }
+
+    std::deque<Infrastructure *> *path = new std::deque<Infrastructure *>;
+
+    for(int i = before_after_list.size() - 1; i >= 0; i--)
+    {
+        if(backtrack == before_after_list[i].second)
+        {
+            path->push_front(backtrack);
+            backtrack = before_after_list[i].first;
+        }
+        if(backtrack == start_pos)
+            break;
+    }
+
+    path->push_front(backtrack);
+
+    for(unsigned int i = 0; i < path->size(); i++)
+    {
+        path->at(i)->setOccupied(true);
+    }
+    return path;
 }
+
+//void Gate_In_Manager::setGate_out_cooldown(int newGate_out_cooldown)
+//{
+//    gate_out_cooldown = newGate_out_cooldown;
+//}
+
+//void Gate_In_Manager::notified_to_remove_train(int pos) // finished - delete the train after the train leaves the station
+//{
+//        delete platforms[pos];
+//        platforms[pos] = nullptr;
+//    train_out_cooldown = gate_out_cooldown;
+//    emit update_cooldown_canvas(train_out_cooldown);
+//    return;
+//}
+
+//void Gate_In_Manager::on_new_train_notified(Train* input) // finished - put a train in waiting list
+//{
+//    incoming_train.push_back(input);
+//    std::string in_waiting_list = "Next Train: ";
+//    for(unsigned int i = 0; i < incoming_train.size(); i++)
+//        in_waiting_list.append("Train " + std::to_string(incoming_train[i]->getId()) + ", ");
+//    emit update_in_waiting_list(QString::fromStdString(in_waiting_list));
+//    return;
+//}
+
+//void Gate_In_Manager::set_train_on_platform(int pos, Train* input) // help function - akan dipanggil oleh animation kalau sudah sampai kesana
+//{
+//        platforms[pos] = input;
+//    gate_in_ready = true;
+//    return;
+//}
+
+Infrastructure* Gate_In_Manager::check_free_platform() // check available platform that leads to an available mine group
+{
+    std::pair<Infrastructure*, int>* available_mine = this->check_free_mine();
+    if(available_mine == nullptr)
+        return nullptr;
+    for(int i = 0; i < PLATFORM_SUM; i++)
+    {
+        if(platform_list[i]->getOccupied() == false)
+        {
+            for(unsigned int j = 0; j < platform_list[i]->getMines()->size(); j++)
+            {
+                if(platform_list[i]->getMines()->at(j) == available_mine->second)
+                {
+                    delete available_mine;
+                    return platform_list[i];
+                }
+            }
+        }
+    }
+    return nullptr;
+}
+
+std::pair<Infrastructure*, int>* Gate_In_Manager::check_free_mine() // return mine group that are available
+{
+    for(int i = 0; i < 3; i++)
+    {
+        for(unsigned int j = 0; j < mine_group[i].size(); j++)
+        {
+            if(mine_group[i].at(j)->getOccupied() == false)
+            {
+                std::pair<Infrastructure*, int>* location = new std::pair<Infrastructure*, int> {mine_group[i].at(j), i};
+                return location;
+            }
+        }
+    }
+    return nullptr;
+}
+
+//void Gate_In_Manager::setMultiplier(int newMultiplier)
+//{
+//    this->multiplier = newMultiplier;
+//}
 
 void Gate_In_Manager::left_initialization()
 {
@@ -178,7 +424,7 @@ void Gate_In_Manager::left_initialization()
             index_y++;
             continue;
         }
-        this->map[index_y][tmp] = new Infrastructure(RAIL);
+        this->map[index_y][tmp] = new Infrastructure(RAIL, index_y, tmp);
     }
 }
 
@@ -187,274 +433,200 @@ void Gate_In_Manager::left_hand_initialization()
     // Line I & II
     for(int i = 2; i < 22; i++)
     {
-        this->map[0][i]->setRight_list(this->map[0][i+1]);
-        this->map[2][i]->setRight_list(this->map[2][i+1]);
-        this->map[0][i]->setLeft_list(this->map[0][i-1]);
-        this->map[2][i]->setLeft_list(this->map[2][i-1]);
+        this->map[0][i]->addRight(this->map[0][i+1]);
+        this->map[2][i]->addRight(this->map[2][i+1]);
+        this->map[0][i]->addLeft(this->map[0][i-1]);
+        this->map[2][i]->addLeft(this->map[2][i-1]);
     }
     // Line III
     for(int i = 2; i < 7; i++)
     {
-        this->map[4][i]->setLeft_list(this->map[4][i-1]);
-        this->map[4][i]->setRight_list(this->map[4][i+1]);
+        this->map[4][i]->addLeft(this->map[4][i-1]);
+        this->map[4][i]->addRight(this->map[4][i+1]);
     }
     for(int i = 19; i < 22; i++)
     {
-        this->map[4][i]->setLeft_list(this->map[4][i-1]);
-        this->map[4][i]->setRight_list(this->map[4][i+1]);
+        this->map[4][i]->addLeft(this->map[4][i-1]);
+        this->map[4][i]->addRight(this->map[4][i+1]);
     }
     // Line IV
     for(int i = 2; i < 22; i++)
     {
-        this->map[6][i]->setLeft_list(this->map[6][i-1]);
-        this->map[6][i]->setRight_list(this->map[6][i+1]);
+        this->map[6][i]->addLeft(this->map[6][i-1]);
+        this->map[6][i]->addRight(this->map[6][i+1]);
     }
     // Line V
     for(int i = 10; i < 22; i++)
     {
-        this->map[8][i]->setLeft_list(this->map[8][i-1]);
-        this->map[8][i]->setRight_list(this->map[8][i+1]);
+        this->map[8][i]->addLeft(this->map[8][i-1]);
+        this->map[8][i]->addRight(this->map[8][i+1]);
     }
     //Line VI
     for(int i = 2; i < 22; i++){
-        this->map[10][i]->setLeft_list(this->map[10][i-1]);
-        this->map[10][i]->setRight_list(this->map[10][i+1]);
+        this->map[10][i]->addLeft(this->map[10][i-1]);
+        this->map[10][i]->addRight(this->map[10][i+1]);
     }
 
     // Line VII
     for(int i = 2; i < 22; i++){
-        this->map[12][i]->setLeft_list(this->map[12][i-1]);
-        this->map[12][i]->setRight_list(this->map[12][i+1]);
+        this->map[12][i]->addLeft(this->map[12][i-1]);
+        this->map[12][i]->addRight(this->map[12][i+1]);
     }
 
     // Line VIII
     for(int i = 16;i < 22; i++){
-        this->map[14][i]->setLeft_list(this->map[14][i-1]);
-        this->map[14][i]->setRight_list(this->map[14][i+1]);
+        this->map[14][i]->addLeft(this->map[14][i-1]);
+        this->map[14][i]->addRight(this->map[14][i+1]);
     }
 
     // Branches
     // Line I
-    this->map[0][10]->setLeft_list(this->map[1][9]); // kiri bawah
-    this->map[0][10]->setRight_list(this->map[1][11]); // kanan bawah
+    this->map[0][10]->addLeft(this->map[1][9]); // kiri bawah
+    this->map[0][10]->addRight(this->map[1][11]); // kanan bawah
     // Line II
-    this->map[2][5]->setLeft_list(this->map[3][4]); // kiri bawah
-    this->map[2][5]->setRight_list(this->map[3][6]); // kanan bawah
-    this->map[2][8]->setRight_list(this->map[1][9]); // kanan atas
-    this->map[2][12]->setLeft_list(this->map[1][11]); // kiri atas
-    this->map[2][12]->setRight_list(this->map[3][13]); // kanan bawah
-    this->map[2][16]->setRight_list(this->map[3][17]); // kanan bawah
+    this->map[2][5]->addLeft(this->map[3][4]); // kiri bawah
+    this->map[2][5]->addRight(this->map[3][6]); // kanan bawah
+    this->map[2][8]->addRight(this->map[1][9]); // kanan atas
+    this->map[2][12]->addLeft(this->map[1][11]); // kiri atas
+    this->map[2][12]->addRight(this->map[3][13]); // kanan bawah
+    this->map[2][16]->addRight(this->map[3][17]); // kanan bawah
     // Line III
-    this->map[4][3]->setRight_list(this->map[3][4]); // kanan atas
-    this->map[4][7]->setLeft_list(this->map[4][6]); // kiri kiri
-    this->map[4][7]->setLeft_list(this->map[3][6]); // kiri atas
-    this->map[4][7]->setRight_list(this->map[5][8]); // kanan bawah
-    this->map[4][14]->setLeft_list(this->map[3][13]); // kiri atas
-    this->map[4][14]->setRight_list(this->map[5][15]); // kanan bawah
-    this->map[4][18]->setLeft_list(this->map[3][17]); // kiri atas
-    this->map[4][18]->setRight_list(this->map[5][19]); // kanan bawah
-    this->map[4][20]->setLeft_list(this->map[5][19]); // kiri bawah
+    this->map[4][3]->addRight(this->map[3][4]); // kanan atas
+    this->map[4][7]->addLeft(this->map[4][6]); // kiri kiri
+    this->map[4][7]->addLeft(this->map[3][6]); // kiri atas
+    this->map[4][7]->addRight(this->map[5][8]); // kanan bawah
+    this->map[4][14]->addLeft(this->map[3][13]); // kiri atas
+    this->map[4][14]->addRight(this->map[5][15]); // kanan bawah
+    this->map[4][18]->addLeft(this->map[3][17]); // kiri atas
+    this->map[4][18]->addRight(this->map[5][19]); // kanan bawah
+    this->map[4][20]->addLeft(this->map[5][19]); // kiri bawah
     // Line IV
-    this->map[6][7]->setLeft_list(this->map[5][6]); // kiri atas
-    this->map[6][7]->setRight_list(this->map[7][8]); // kanan bawah
-    this->map[6][9]->setLeft_list(this->map[5][8]); // kiri atas
-    this->map[6][9]->setRight_list(this->map[7][10]); // kanan bawah
-    this->map[6][16]->setLeft_list(this->map[5][15]); // kiri atas
-    this->map[6][18]->setLeft_list(this->map[7][17]); // kiri bawah
-    this->map[6][18]->setRight_list(this->map[5][19]); // kanan atas
+    this->map[6][7]->addLeft(this->map[5][6]); // kiri atas
+    this->map[6][7]->addRight(this->map[7][8]); // kanan bawah
+    this->map[6][9]->addLeft(this->map[5][8]); // kiri atas
+    this->map[6][9]->addRight(this->map[7][10]); // kanan bawah
+    this->map[6][16]->addLeft(this->map[5][15]); // kiri atas
+    this->map[6][18]->addLeft(this->map[7][17]); // kiri bawah
+    this->map[6][18]->addRight(this->map[5][19]); // kanan atas
     // Line V
-    this->map[8][9]->setLeft_list(this->map[7][8]); // kiri atas
-    this->map[8][9]->setRight_list(this->map[8][10]); // kanan kanan
-    this->map[8][9]->setRight_list(this->map[7][10]); // kanan atas
-    this->map[8][11]->setLeft_list(this->map[7][10]); // kiri atas
-    this->map[8][11]->setRight_list(this->map[9][12]); // kanan bawah
-    this->map[8][16]->setLeft_list(this->map[9][15]); // kiri bawah
-    this->map[8][16]->setRight_list(this->map[7][17]); // kanan atas
+    this->map[8][9]->addLeft(this->map[7][8]); // kiri atas
+    this->map[8][9]->addRight(this->map[8][10]); // kanan kanan
+    this->map[8][9]->addRight(this->map[7][10]); // kanan atas
+    this->map[8][11]->addLeft(this->map[7][10]); // kiri atas
+    this->map[8][11]->addRight(this->map[9][12]); // kanan bawah
+    this->map[8][16]->addLeft(this->map[9][15]); // kiri bawah
+    this->map[8][16]->addRight(this->map[7][17]); // kanan atas
     // Line VI
-    this->map[10][11]->setLeft_list(this->map[9][10]);
-    this->map[10][11]->setRight_list(this->map[11][12]);
-    this->map[10][13]->setRight_list(this->map[11][14]);
-    this->map[10][13]->setLeft_list(this->map[9][12]);
-    this->map[10][14]->setLeft_list(this->map[9][15]);
-    this->map[10][17]->setLeft_list(this->map[11][16]);
+    this->map[10][11]->addLeft(this->map[9][10]); // kiri atas
+    this->map[10][11]->addRight(this->map[11][12]); // kanan bawah
+    this->map[10][13]->addLeft(this->map[9][12]); // kiri atas
+    this->map[10][13]->addRight(this->map[11][14]); // kanan bawah
+    this->map[10][14]->addRight(this->map[9][15]); // kanan atas
+    this->map[10][17]->addLeft(this->map[11][16]); // kiri bawah
     // Line VII
-    this->map[12][13]->setLeft_list(this->map[11][12]);
-    this->map[12][13]->setRight_list(this->map[13][14]);
-    this->map[12][15]->setLeft_list(this->map[11][14]);
-    this->map[12][15]->setRight_list(this->map[11][16]);
-    this->map[12][15]->setRight_list(this->map[13][16]);
+    this->map[12][13]->addLeft(this->map[11][12]); // kiri atas
+    this->map[12][13]->addRight(this->map[13][14]); // kanan bawah
+    this->map[12][15]->addLeft(this->map[11][14]); // kiri atas
+    this->map[12][15]->addRight(this->map[11][16]); // kanan atas
+    this->map[12][15]->addRight(this->map[13][16]); // kanan bawah
     // Line VIII
-    this->map[14][17]->setLeft_list(this->map[13][16]);
-    this->map[14][15]->setRight_list(this->map[14][16]);
-    this->map[14][15]->setLeft_list(this->map[13][14]);
+    this->map[14][17]->addLeft(this->map[13][16]); // kiri atas
+    this->map[14][15]->addRight(this->map[14][16]); // kanan kanan
+    this->map[14][15]->addLeft(this->map[13][14]); // kiri atas
 
     // 2nd Branches
     // Line I-II
-    this->map[1][9]->setLeft_list(this->map[2][8]); // kiri bawah
-    this->map[1][9]->setRight_list(this->map[0][10]); // kanan atas
-    this->map[1][11]->setLeft_list(this->map[0][10]); // kiri atas
-    this->map[1][11]->setRight_list(this->map[2][12]); // kanan bawah
+    this->map[1][9]->addLeft(this->map[2][8]); // kiri bawah
+    this->map[1][9]->addRight(this->map[0][10]); // kanan atas
+    this->map[1][11]->addLeft(this->map[0][10]); // kiri atas
+    this->map[1][11]->addRight(this->map[2][12]); // kanan bawah
     // Line II-III
-    this->map[3][4]->setLeft_list(this->map[4][3]); // kiri bawah
-    this->map[3][4]->setRight_list(this->map[2][5]); // kanan atas
-    this->map[3][6]->setLeft_list(this->map[2][5]); // kiri atas
-    this->map[3][6]->setRight_list(this->map[4][7]); // kanan bawah
-    this->map[3][13]->setLeft_list(this->map[2][12]); // kiri atas
-    this->map[3][13]->setRight_list(this->map[4][14]); // kanan bawah
-    this->map[3][17]->setLeft_list(this->map[2][16]); // kiri atas
-    this->map[3][17]->setRight_list(this->map[4][18]); // kanan bawah
+    this->map[3][4]->addLeft(this->map[4][3]); // kiri bawah
+    this->map[3][4]->addRight(this->map[2][5]); // kanan atas
+    this->map[3][6]->addLeft(this->map[2][5]); // kiri atas
+    this->map[3][6]->addRight(this->map[4][7]); // kanan bawah
+    this->map[3][13]->addLeft(this->map[2][12]); // kiri atas
+    this->map[3][13]->addRight(this->map[4][14]); // kanan bawah
+    this->map[3][17]->addLeft(this->map[2][16]); // kiri atas
+    this->map[3][17]->addRight(this->map[4][18]); // kanan bawah
     // Line III-IV
-    this->map[5][6]->setLeft_list(this->map[4][5]); // kiri atas
-    this->map[5][6]->setRight_list(this->map[6][7]); // kanan bawah
-    this->map[5][8]->setLeft_list(this->map[4][7]); // kiri atas
-    this->map[5][8]->setRight_list(this->map[6][9]); // kanan bawah
-    this->map[5][15]->setLeft_list(this->map[4][14]); // kiri atas
-    this->map[5][15]->setRight_list(this->map[6][16]); // kanan bawah
-    this->map[5][19]->setLeft_list(this->map[6][18]); // kiri bawah
-    this->map[5][19]->setRight_list(this->map[4][20]); // kanan atas
+    this->map[5][6]->addLeft(this->map[4][5]); // kiri atas
+    this->map[5][6]->addRight(this->map[6][7]); // kanan bawah
+    this->map[5][8]->addLeft(this->map[4][7]); // kiri atas
+    this->map[5][8]->addRight(this->map[6][9]); // kanan bawah
+    this->map[5][15]->addLeft(this->map[4][14]); // kiri atas
+    this->map[5][15]->addRight(this->map[6][16]); // kanan bawah
+    this->map[5][19]->addLeft(this->map[6][18]); // kiri bawah
+    this->map[5][19]->addRight(this->map[4][20]); // kanan atas
     // Line IV-V
-    this->map[7][8]->setLeft_list(this->map[6][7]); // kiri atas
-    this->map[7][8]->setRight_list(this->map[8][9]); // kanan bawah
-    this->map[7][10]->setLeft_list(this->map[6][9]); // kiri atas
-    this->map[7][10]->setRight_list(this->map[8][11]); // kanan bawah
-    this->map[7][17]->setLeft_list(this->map[8][16]); // kiri bawah
-    this->map[7][17]->setRight_list(this->map[6][18]); // kanan atas
+    this->map[7][8]->addLeft(this->map[6][7]); // kiri atas
+    this->map[7][8]->addRight(this->map[8][9]); // kanan bawah
+    this->map[7][10]->addLeft(this->map[6][9]); // kiri atas
+    this->map[7][10]->addRight(this->map[8][11]); // kanan bawah
+    this->map[7][17]->addLeft(this->map[8][16]); // kiri bawah
+    this->map[7][17]->addRight(this->map[6][18]); // kanan atas
     // Line V-VI
-    this->map[9][10]->setLeft_list(this->map[8][9]); // kiri atas
-    this->map[9][10]->setRight_list(this->map[10][11]); // kanan bawah
-    this->map[9][12]->setLeft_list(this->map[8][11]); // kiri atas
-    this->map[9][12]->setRight_list(this->map[10][13]); // kanan bawah
-    this->map[9][15]->setLeft_list(this->map[10][14]); // kiri bawah
-    this->map[9][15]->setRight_list(this->map[8][16]); // kanan atas
+    this->map[9][10]->addLeft(this->map[8][9]); // kiri atas
+    this->map[9][10]->addRight(this->map[10][11]); // kanan bawah
+    this->map[9][12]->addLeft(this->map[8][11]); // kiri atas
+    this->map[9][12]->addRight(this->map[10][13]); // kanan bawah
+    this->map[9][15]->addLeft(this->map[10][14]); // kiri bawah
+    this->map[9][15]->addRight(this->map[8][16]); // kanan atas
     // Line VI - VII
-    this->map[11][12]->setLeft_list(this->map[10][11]);
-    this->map[11][12]->setRight_list(this->map[12][13]);
-    this->map[11][14]->setLeft_list(this->map[10][13]);
-    this->map[11][14]->setRight_list(this->map[12][15]);
-    this->map[11][16]->setLeft_list(this->map[12][15]);
-    this->map[11][16]->setRight_list(this->map[10][17]);
+    this->map[11][12]->addLeft(this->map[10][11]); // kiri atas
+    this->map[11][12]->addRight(this->map[12][13]); // kanan bawah
+    this->map[11][14]->addLeft(this->map[10][13]); // kiri atas
+    this->map[11][14]->addRight(this->map[12][15]); // kanan bawah
+    this->map[11][16]->addLeft(this->map[12][15]); // kiri bawah
+    this->map[11][16]->addRight(this->map[10][17]); // kanan atas
     // Line VII - VIII
-    this->map[13][14]->setLeft_list(this->map[12][13]);
-    this->map[13][14]->setRight_list(this->map[14][15]);
-    this->map[13][16]->setLeft_list(this->map[12][15]);
-    this->map[13][16]->setRight_list(this->map[14][17]);
+    this->map[13][14]->addLeft(this->map[12][13]); // kiri atas
+    this->map[13][14]->addRight(this->map[14][15]); // kanan bawah
+    this->map[13][16]->addLeft(this->map[12][15]); // kiri atas
+    this->map[13][16]->addRight(this->map[14][17]); // kanan bawah
 
     // Mine entrance
     // Group 1
-    this->map[0][1]->setRight_list(this->map[0][2]);
-    this->map[0][1]->setLeft_list(this->map[1][0]);
-    this->map[0][1]->setLeft_list(this->map[2][0]);
-    this->map[0][1]->setLeft_list(this->map[3][0]);
-    this->map[2][1]->setRight_list(this->map[2][2]);
-    this->map[2][1]->setLeft_list(this->map[1][0]);
-    this->map[2][1]->setLeft_list(this->map[2][0]);
-    this->map[2][1]->setLeft_list(this->map[3][0]);
+    this->map[0][1]->addRight(this->map[0][2]);
+    this->map[0][1]->addLeft(this->map[1][0]);
+    this->map[0][1]->addLeft(this->map[2][0]);
+    this->map[0][1]->addLeft(this->map[3][0]);
+    this->map[2][1]->addRight(this->map[2][2]);
+    this->map[2][1]->addLeft(this->map[1][0]);
+    this->map[2][1]->addLeft(this->map[2][0]);
+    this->map[2][1]->addLeft(this->map[3][0]);
     // Group 2
-    this->map[4][1]->setRight_list(this->map[4][2]);
-    this->map[4][1]->setLeft_list(this->map[5][0]);
-    this->map[4][1]->setLeft_list(this->map[6][0]);
-    this->map[4][1]->setLeft_list(this->map[7][0]);
-    this->map[6][1]->setRight_list(this->map[6][2]);
-    this->map[6][1]->setLeft_list(this->map[5][0]);
-    this->map[6][1]->setLeft_list(this->map[6][0]);
-    this->map[6][1]->setLeft_list(this->map[7][0]);
+    this->map[4][1]->addRight(this->map[4][2]);
+    this->map[4][1]->addLeft(this->map[5][0]);
+    this->map[4][1]->addLeft(this->map[6][0]);
+    this->map[4][1]->addLeft(this->map[7][0]);
+    this->map[6][1]->addRight(this->map[6][2]);
+    this->map[6][1]->addLeft(this->map[5][0]);
+    this->map[6][1]->addLeft(this->map[6][0]);
+    this->map[6][1]->addLeft(this->map[7][0]);
     // Group 3
-    this->map[10][1]->setRight_list(this->map[10][2]);
-    this->map[10][1]->setLeft_list(this->map[11][0]);
-    this->map[10][1]->setLeft_list(this->map[12][0]);
-    this->map[12][1]->setRight_list(this->map[12][2]);
-    this->map[12][1]->setLeft_list(this->map[11][0]);
-    this->map[12][1]->setLeft_list(this->map[12][0]);
+    this->map[10][1]->addRight(this->map[10][2]);
+    this->map[10][1]->addLeft(this->map[11][0]);
+    this->map[10][1]->addLeft(this->map[12][0]);
+    this->map[12][1]->addRight(this->map[12][2]);
+    this->map[12][1]->addLeft(this->map[11][0]);
+    this->map[12][1]->addLeft(this->map[12][0]);
 }
 
 void Gate_In_Manager::right_initialization()
 {
-    // Line I & II
-    for(int i = 23; i < MAX_X; i++) // dari 23 -> 38
+    int index_y = 0;
+    while(!fill_right.empty())
     {
-        this->map[0][i] = new Infrastructure(RAIL);
-        this->map[2][i] = new Infrastructure(RAIL);
+        int tmp = fill_right.front();
+        fill_right.pop_front();
+        if(tmp == -1)
+        {
+            index_y++;
+            continue;
+        }
+        this->map[index_y][tmp] = new Infrastructure(RAIL, index_y, tmp);
     }
-
-    // Line III
-    for(int i = 23; i < 30; i++) // dari 23 -> 29
-    {
-        this->map[4][i] = new Infrastructure(RAIL);
-    }
-    // Line IV
-    for(int i = 23; i < 28; i++) // dari 23 -> 27
-    {
-        this->map[6][i] = new Infrastructure(RAIL);
-    }
-
-    // Line V
-    for(int i = 23; i < 26; i++) // dari 23 -> 25
-    {
-        this->map[8][i] = new Infrastructure(RAIL);
-    }
-
-    // Line VI
-    for(int i = 23; i < 27; i++) // dari 23 -> 26
-    {
-        this->map[10][i] = new Infrastructure(RAIL);
-    }
-
-    // Line VII
-    for(int i = 23; i < 25; i++) // dari 23 -> 24
-    {
-        this->map[12][i] = new Infrastructure(RAIL);
-    }
-
-    // Branches
-
-    // Line III
-    this->map[4][30] = new Infrastructure(RAIL);
-    this->map[4][33] = new Infrastructure(RAIL);
-
-    // Line IV
-    this->map[6][28] = new Infrastructure(RAIL);
-    this->map[6][31] = new Infrastructure(RAIL);
-
-    // Line V
-    this->map[8][26] = new Infrastructure(RAIL);
-    this->map[8][29] = new Infrastructure(RAIL);
-
-    // Line VI
-    this->map[10][27] = new Infrastructure(RAIL);
-
-    // Line VII
-    this->map[12][25] = new Infrastructure(RAIL);
-
-    // Line VIII
-    this->map[14][23] = new Infrastructure(RAIL);
-
-    // 2nd Branches
-    // Line I-II
-    this->map[1][33] = new Infrastructure(RAIL);
-    this->map[1][34] = new Infrastructure(RAIL);
-    this->map[1][36] = new Infrastructure(RAIL);
-
-    // Line II-III
-    this->map[3][31] = new Infrastructure(RAIL);
-    this->map[3][34] = new Infrastructure(RAIL);
-
-    // Line III-IV
-    this->map[5][29] = new Infrastructure(RAIL);
-    this->map[5][32] = new Infrastructure(RAIL);
-
-    // Line IV-V
-    this->map[7][27] = new Infrastructure(RAIL);
-    this->map[7][30] = new Infrastructure(RAIL);
-
-    // Line V-VI
-    this->map[9][25] = new Infrastructure(RAIL);
-    this->map[9][28] = new Infrastructure(RAIL);
-
-    // Line VI-VII
-    this->map[11][26] = new Infrastructure(RAIL);
-
-    // Line VII-VIII
-    this->map[13][24] = new Infrastructure(RAIL);
 }
 
 void Gate_In_Manager::right_hand_initialization()
@@ -464,135 +636,135 @@ void Gate_In_Manager::right_hand_initialization()
     {
         if(i != 38)
         {
-            this->map[0][i]->setRight_list(this->map[0][i+1]);
-            this->map[2][i]->setRight_list(this->map[2][i+1]);
+            this->map[0][i]->addRight(this->map[0][i+1]);
+            this->map[2][i]->addRight(this->map[2][i+1]);
         }
-        this->map[0][i]->setLeft_list(this->map[0][i-1]);
-        this->map[2][i]->setLeft_list(this->map[2][i-1]);
+        this->map[0][i]->addLeft(this->map[0][i-1]);
+        this->map[2][i]->addLeft(this->map[2][i-1]);
     }
 
     // Line III
     for(int i = 23; i < 30; i++) // dari 23 -> 29
     {
-        this->map[4][i]->setLeft_list(this->map[4][i-1]);
-        this->map[4][i]->setRight_list(this->map[4][i+1]);
+        this->map[4][i]->addLeft(this->map[4][i-1]);
+        this->map[4][i]->addRight(this->map[4][i+1]);
     }
     // Line IV
     for(int i = 23; i < 28; i++) // dari 23 -> 27
     {
-        this->map[6][i]->setLeft_list(this->map[6][i-1]);
-        this->map[6][i]->setRight_list(this->map[6][i+1]);
+        this->map[6][i]->addLeft(this->map[6][i-1]);
+        this->map[6][i]->addRight(this->map[6][i+1]);
     }
 
     // Line V
     for(int i = 23; i < 26; i++) // dari 23 -> 25
     {
-        this->map[8][i]->setLeft_list(this->map[8][i-1]);
-        this->map[8][i]->setRight_list(this->map[8][i+1]);
+        this->map[8][i]->addLeft(this->map[8][i-1]);
+        this->map[8][i]->addRight(this->map[8][i+1]);
     }
 
     // Line VI
     for(int i = 23; i < 27; i++) // dari 23 -> 26
     {
-        this->map[10][i]->setLeft_list(this->map[10][i-1]);
-        this->map[10][i]->setRight_list(this->map[10][i+1]);
+        this->map[10][i]->addLeft(this->map[10][i-1]);
+        this->map[10][i]->addRight(this->map[10][i+1]);
     }
 
     // Line VII
     for(int i = 23; i < 25; i++) // dari 23 -> 24
     {
-        this->map[12][i]->setLeft_list(this->map[12][i-1]);
-        this->map[12][i]->setRight_list(this->map[12][i+1]);
+        this->map[12][i]->addLeft(this->map[12][i-1]);
+        this->map[12][i]->addRight(this->map[12][i+1]);
     }
 
     // Branches
     // Line I
-    this->map[0][33]->setRight_list(this->map[1][34]); // kanan bawah
-    this->map[0][34]->setLeft_list(this->map[1][33]); // kiri bawah
-    this->map[0][37]->setLeft_list(this->map[1][36]); // kiri bawah
+    this->map[0][33]->addRight(this->map[1][34]); // kanan bawah
+    this->map[0][34]->addLeft(this->map[1][33]); // kiri bawah
+    this->map[0][37]->addLeft(this->map[1][36]); // kiri bawah
 
     // Line II
-    this->map[2][32]->setLeft_list(this->map[3][31]); // kiri bawah
-    this->map[2][32]->setRight_list(this->map[1][33]); // kanan atas
-    this->map[2][35]->setLeft_list(this->map[1][34]); // kiri atas
-    this->map[2][35]->setLeft_list(this->map[3][34]); // kiri bawah
-    this->map[2][35]->setRight_list(this->map[1][36]); // kanan atas
+    this->map[2][32]->addLeft(this->map[3][31]); // kiri bawah
+    this->map[2][32]->addRight(this->map[1][33]); // kanan atas
+    this->map[2][35]->addLeft(this->map[1][34]); // kiri atas
+    this->map[2][35]->addLeft(this->map[3][34]); // kiri bawah
+    this->map[2][35]->addRight(this->map[1][36]); // kanan atas
 
     // Line III
-    this->map[4][30]->setLeft_list(this->map[4][29]);
-    this->map[4][30]->setLeft_list(this->map[5][29]);
-    this->map[4][30]->setRight_list(this->map[3][31]);
-    this->map[4][33]->setLeft_list(this->map[5][32]); // bawah
-    this->map[4][33]->setRight_list(this->map[3][34]); // atas
+    this->map[4][30]->addLeft(this->map[4][29]);
+    this->map[4][30]->addLeft(this->map[5][29]);
+    this->map[4][30]->addRight(this->map[3][31]);
+    this->map[4][33]->addLeft(this->map[5][32]); // bawah
+    this->map[4][33]->addRight(this->map[3][34]); // atas
 
     // Line IV
-    this->map[6][28]->setLeft_list(this->map[6][27]);
-    this->map[6][28]->setLeft_list(this->map[7][27]);
-    this->map[6][28]->setRight_list(this->map[5][29]);
-    this->map[6][31]->setLeft_list(this->map[7][30]);
-    this->map[6][31]->setRight_list(this->map[5][32]);
+    this->map[6][28]->addLeft(this->map[6][27]);
+    this->map[6][28]->addLeft(this->map[7][27]);
+    this->map[6][28]->addRight(this->map[5][29]);
+    this->map[6][31]->addLeft(this->map[7][30]);
+    this->map[6][31]->addRight(this->map[5][32]);
 
     // Line V
-    this->map[8][26]->setLeft_list(this->map[8][25]);
-    this->map[8][26]->setLeft_list(this->map[9][25]);
-    this->map[8][26]->setRight_list(this->map[7][27]);
-    this->map[8][29]->setLeft_list(this->map[9][28]);
-    this->map[8][29]->setRight_list(this->map[7][30]);
+    this->map[8][26]->addLeft(this->map[8][25]);
+    this->map[8][26]->addLeft(this->map[9][25]);
+    this->map[8][26]->addRight(this->map[7][27]);
+    this->map[8][29]->addLeft(this->map[9][28]);
+    this->map[8][29]->addRight(this->map[7][30]);
 
     // Line VI
-    this->map[10][24]->setRight_list(this->map[9][25]);
-    this->map[10][27]->setLeft_list(this->map[10][26]);
-    this->map[10][27]->setLeft_list(this->map[11][26]);
-    this->map[10][27]->setRight_list(this->map[9][28]);
+    this->map[10][24]->addRight(this->map[9][25]);
+    this->map[10][27]->addLeft(this->map[10][26]);
+    this->map[10][27]->addLeft(this->map[11][26]);
+    this->map[10][27]->addRight(this->map[9][28]);
 
     // Line VII
-    this->map[12][25]->setLeft_list(this->map[12][24]);
-    this->map[12][25]->setRight_list(this->map[11][26]);
+    this->map[12][25]->addLeft(this->map[12][24]);
+    this->map[12][25]->addRight(this->map[11][26]);
 
     // Line VIII
-    this->map[14][23]->setLeft_list(this->map[14][22]);
-    this->map[14][23]->setRight_list(this->map[13][24]);
+    this->map[14][23]->addLeft(this->map[14][22]);
+    this->map[14][23]->addRight(this->map[13][24]);
 
     // 2nd Branches
     // Line I-II
-    this->map[1][33]->setLeft_list(this->map[2][32]);
-    this->map[1][33]->setRight_list(this->map[0][34]);
-    this->map[1][34]->setLeft_list(this->map[2][33]);
-    this->map[1][34]->setRight_list(this->map[0][35]);
-    this->map[1][36]->setLeft_list(this->map[2][35]);
-    this->map[1][36]->setRight_list(this->map[0][37]);
+    this->map[1][33]->addLeft(this->map[2][32]); // kiri bawah
+    this->map[1][33]->addRight(this->map[0][34]); // kanan atas
+    this->map[1][34]->addLeft(this->map[0][33]); // kiri atas
+    this->map[1][34]->addRight(this->map[2][35]); // kanan bawah
+    this->map[1][36]->addLeft(this->map[2][35]); // kiri bawah
+    this->map[1][36]->addRight(this->map[0][37]); // kanan atas
 
     // Line II-III
-    this->map[3][31]->setLeft_list(this->map[4][30]); // kiri bawah
-    this->map[3][31]->setRight_list(this->map[2][32]); // kanan atas
-    this->map[3][34]->setLeft_list(this->map[4][33]); // kiri bawah
-    this->map[3][34]->setRight_list(this->map[2][35]); // kanan atas
+    this->map[3][31]->addLeft(this->map[4][30]); // kiri bawah
+    this->map[3][31]->addRight(this->map[2][32]); // kanan atas
+    this->map[3][34]->addLeft(this->map[4][33]); // kiri bawah
+    this->map[3][34]->addRight(this->map[2][35]); // kanan atas
 
     // Line III-IV
-    this->map[5][29]->setLeft_list(this->map[6][28]); // kiri bawah
-    this->map[5][29]->setRight_list(this->map[4][30]); // kanan atas
-    this->map[5][32]->setLeft_list(this->map[6][31]); // kiri bawah
-    this->map[5][32]->setRight_list(this->map[4][33]); // kanan atas
+    this->map[5][29]->addLeft(this->map[6][28]); // kiri bawah
+    this->map[5][29]->addRight(this->map[4][30]); // kanan atas
+    this->map[5][32]->addLeft(this->map[6][31]); // kiri bawah
+    this->map[5][32]->addRight(this->map[4][33]); // kanan atas
 
     // Line IV-V
-    this->map[7][27]->setLeft_list(this->map[8][26]); // kiri bawah
-    this->map[7][27]->setRight_list(this->map[6][28]); // kanan atas
-    this->map[7][30]->setLeft_list(this->map[8][29]); // kiri bawah
-    this->map[7][30]->setRight_list(this->map[6][31]); // kanan atas
+    this->map[7][27]->addLeft(this->map[8][26]); // kiri bawah
+    this->map[7][27]->addRight(this->map[6][28]); // kanan atas
+    this->map[7][30]->addLeft(this->map[8][29]); // kiri bawah
+    this->map[7][30]->addRight(this->map[6][31]); // kanan atas
 
     // Line V-VI
-    this->map[9][25]->setLeft_list(this->map[10][24]); // kiri bawah
-    this->map[9][25]->setRight_list(this->map[8][26]); // kanan atas
-    this->map[9][28]->setLeft_list(this->map[10][27]); // kiri bawah
-    this->map[9][28]->setRight_list(this->map[8][29]); // kanan atas
+    this->map[9][25]->addLeft(this->map[10][24]); // kiri bawah
+    this->map[9][25]->addRight(this->map[8][26]); // kanan atas
+    this->map[9][28]->addLeft(this->map[10][27]); // kiri bawah
+    this->map[9][28]->addRight(this->map[8][29]); // kanan atas
 
     // Line VI-VII
-    this->map[11][26]->setLeft_list(this->map[12][25]); // kiri bawah
-    this->map[11][26]->setRight_list(this->map[10][27]); // kanan atas
+    this->map[11][26]->addLeft(this->map[12][25]); // kiri bawah
+    this->map[11][26]->addRight(this->map[10][27]); // kanan atas
 
     // Line VII-VIII
-    this->map[13][24]->setLeft_list(this->map[14][23]); // kiri bawah
-    this->map[13][24]->setRight_list(this->map[12][25]); // kanan atas
+    this->map[13][24]->addLeft(this->map[14][23]); // kiri bawah
+    this->map[13][24]->addRight(this->map[12][25]); // kanan atas
 }
 
 void Gate_In_Manager::mine_initialization()
@@ -600,24 +772,24 @@ void Gate_In_Manager::mine_initialization()
     int counter = 0;
     while(counter < 3)
     {
-        Infrastructure* tmp = new Infrastructure(MINE);
-        this->Mine_group[0].push_back(tmp);
+        Infrastructure* tmp = new Infrastructure(MINE, 1+counter, 0);
+        this->mine_group[0].push_back(tmp);
         this->map[1+counter][0] = tmp;
         counter++;
     }
     counter = 0;
     while(counter < 3)
     {
-        Infrastructure* tmp = new Infrastructure(MINE);
-        this->Mine_group[1].push_back(tmp);
+        Infrastructure* tmp = new Infrastructure(MINE, 5+counter, 0);
+        this->mine_group[1].push_back(tmp);
         this->map[5+counter][0] = tmp;
         counter++;
     }
     counter = 0;
     while(counter < 2)
     {
-        Infrastructure* tmp = new Infrastructure(MINE);
-        this->Mine_group[2].push_back(tmp);
+        Infrastructure* tmp = new Infrastructure(MINE, 11+counter, 0);
+        this->mine_group[2].push_back(tmp);
         this->map[11+counter][0] = tmp;
         counter++;
     }
@@ -625,45 +797,45 @@ void Gate_In_Manager::mine_initialization()
 
 void Gate_In_Manager::mine_hand_initialization()
 {
-        // Group 1
-        this->map[1][0]->setRight_list(this->map[0][1]);
-        this->map[1][0]->setRight_list(this->map[2][1]);
-        this->map[2][0]->setRight_list(this->map[0][1]);
-        this->map[2][0]->setRight_list(this->map[2][1]);
-        this->map[3][0]->setRight_list(this->map[0][1]);
-        this->map[3][0]->setRight_list(this->map[2][1]);
+    // Group 1
+    this->map[1][0]->addRight(this->map[0][1]);
+    this->map[1][0]->addRight(this->map[2][1]);
+    this->map[2][0]->addRight(this->map[0][1]);
+    this->map[2][0]->addRight(this->map[2][1]);
+    this->map[3][0]->addRight(this->map[0][1]);
+    this->map[3][0]->addRight(this->map[2][1]);
 
-        // Group 2
-        this->map[5][0]->setRight_list(this->map[4][1]);
-        this->map[5][0]->setRight_list(this->map[6][1]);
-        this->map[6][0]->setRight_list(this->map[4][1]);
-        this->map[6][0]->setRight_list(this->map[6][1]);
-        this->map[7][0]->setRight_list(this->map[4][1]);
-        this->map[7][0]->setRight_list(this->map[6][1]);
+    // Group 2
+    this->map[5][0]->addRight(this->map[4][1]);
+    this->map[5][0]->addRight(this->map[6][1]);
+    this->map[6][0]->addRight(this->map[4][1]);
+    this->map[6][0]->addRight(this->map[6][1]);
+    this->map[7][0]->addRight(this->map[4][1]);
+    this->map[7][0]->addRight(this->map[6][1]);
 
-        // Group 3
-        this->map[11][0]->setRight_list(this->map[10][1]);
-        this->map[11][0]->setRight_list(this->map[12][1]);
-        this->map[12][0]->setRight_list(this->map[10][1]);
-        this->map[12][0]->setRight_list(this->map[12][1]);
+    // Group 3
+    this->map[11][0]->addRight(this->map[10][1]);
+    this->map[11][0]->addRight(this->map[12][1]);
+    this->map[12][0]->addRight(this->map[10][1]);
+    this->map[12][0]->addRight(this->map[12][1]);
 }
 
 void Gate_In_Manager::platform_initialization()
 {
     for(int i = 0; i < PLATFORM_SUM; i++)
     {
-        this->platform_list[i] = new Infrastructure(PLATFORM);
+        this->platform_list[i] = new Infrastructure(PLATFORM, 2*i, 22);
         this->map[2*i][22] = this->platform_list[i];
         if(i < 2)
         {
-            this->platform_list[i]->setPossible_mine_group(0);
-            this->platform_list[i]->setPossible_mine_group(1);
+            this->platform_list[i]->setMines(0);
+            this->platform_list[i]->setMines(1);
         }
         else
         {
-            this->platform_list[i]->setPossible_mine_group(0);
-            this->platform_list[i]->setPossible_mine_group(1);
-            this->platform_list[i]->setPossible_mine_group(2);
+            this->platform_list[i]->setMines(0);
+            this->platform_list[i]->setMines(1);
+            this->platform_list[i]->setMines(2);
         }
     }
 }
@@ -672,12 +844,7 @@ void Gate_In_Manager::platform_hand_initialization()
 {
     for(int i = 0; i < PLATFORM_SUM; i++)
     {
-        this->map[2*i][22]->setLeft_list(this->map[2*i][21]);
-        this->map[2*i][22]->setRight_list(this->map[2*i][23]);
+        this->map[2*i][22]->addLeft(this->map[2*i][21]);
+        this->map[2*i][22]->addRight(this->map[2*i][23]);
     }
-}
-
-void Gate_In_Manager::setMultiplier(int newMultiplier)
-{
-    this->multiplier = newMultiplier;
 }

@@ -34,3 +34,13 @@ void Train::setOut_waiting_list(bool newOut_waiting_list)
 {
     out_waiting_list = newOut_waiting_list;
 }
+
+bool Train::getDirection() const
+{
+    return direction;
+}
+
+void Train::setDirection(bool newDirection)
+{
+    direction = newDirection;
+}

@@ -18,10 +18,15 @@ public:
     bool getOut_waiting_list() const;
     void setOut_waiting_list(bool newOut_waiting_list);
 
+    bool getDirection() const;
+    void setDirection(bool newDirection);
+
 private:
+    enum {ENTERING, EXITING};
     int id;
-    int stop_duration;
+    int stop_duration = 0;
     bool out_waiting_list = false;
+    bool direction = ENTERING;
 };
 
 #endif // TRAIN_H

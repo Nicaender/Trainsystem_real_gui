@@ -11,64 +11,41 @@ void Animation::run()
     {
         QMutex m;
         m.lock();
-        if(this->first_animating == true)
+        if(!this->path_list.empty())
         {
+            Infrastructure *tmp_before, *tmp_after;
+            for(unsigned int i = 0; i < path_list.size(); i++)
+            {
+                tmp_before = path_list[i].front();
+                path_list[i].pop_front();
+                tmp_after = path_list[i].front();
+                tmp_after->setTrain(tmp_before->getTrain());
+                tmp_before->setTrain(nullptr);
+                if(path_list[i].size() == 1)
+                {
+                    while(!copy_path_list[i].empty())
+                    {
+                        copy_path_list[i].front()->setOccupied(false);
+                        copy_path_list[i].pop_front();
+                    }
+                    copy_path_list.erase(copy_path_list.begin() + i);
+                    path_list.erase(path_list.begin() + i);
+                    emit notify_train_arrived(tmp_after);
+                    i--;
+                }
+            }
             this->msleep(1000 / multiplier);
-            this->currently_animating = true;
-            this->first_animating = false;
         }
-
-        if(entering && duration_in != 0 && this->currently_animating)
-        {
-            emit move_entering_on_canvas(pos_in);
-            duration_in--;
-            if(duration_in == 0)
-            {
-                emit train_arrived_on_platform(pos_in, train_in);
-                entering = false;
-                pos_in = -1;
-                train_in = nullptr;
-            }
-        }
-        if(exiting && duration_out != 0 && this->currently_animating)
-        {
-            emit move_exiting_on_canvas(pos_out);
-            duration_out--;
-            if(duration_out == 0)
-            {
-                emit destroy_train(pos_out);
-                exiting = false;
-                pos_out = -1;
-                train_out = nullptr;
-            }
-        }
-
-        if(entering || duration_in != 0 || exiting || duration_out != 0)
-            this->msleep(1000 / multiplier); // kalau mau pakai smoother animation, di bagi dengan speed yang diinginkan
-        if(!entering && duration_in == 0 && !exiting && duration_out == 0)
-            this->currently_animating = false;
         m.unlock();
     }
 }
 
-void Animation::start_animating(int pos, bool gate_in, Train* input)
+void Animation::notified_train_depart(std::deque<Infrastructure *> *path)
 {
-    if(this->currently_animating != true)
-        this->first_animating = true;
-    if(gate_in)
-    {
-        this->entering = true;
-        pos_in = pos;
-        duration_in = GATE_IN_DURATION;
-        train_in = input;
-    }
-    else
-    {
-        this->exiting =  true;
-        pos_out = pos;
-        duration_out = GATE_OUT_DURATION;
-        train_out = input;
-    }
+    this->path_list.push_back(*path);
+    this->copy_path_list.push_back(*path);
+    delete path;
+    return;
 }
 
 void Animation::setMultiplier(int newMultiplier)
