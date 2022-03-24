@@ -17,7 +17,7 @@ Gate_In_Manager::Gate_In_Manager(QObject *parent) : QThread(parent)
 
     for(int z = 0; z < 8; z++)
     {
-        std::deque<Infrastructure*> *jalan = this->navigate(Mine_group[2].at(1), platform_list[z], RIGHT);
+        std::deque<Infrastructure*> *jalan = this->navigate(mine_group[2].at(1), platform_list[z], EXITING);
 
         std::string cout;
         bool ketemu = false;
@@ -119,17 +119,39 @@ void Gate_In_Manager::run()
     //    }
 }
 
-//void Gate_In_Manager::notify_train_into_platform(int pos) // finished - tell animation and mainwindow to move the train
-//{
-//    std::string in_waiting_list = "Next Train: ";
-//    Train* tmp = incoming_train.front();
-//    incoming_train.pop_front();
-//    emit train_in_entrance(pos, tmp);
-//    for(unsigned int i = 0; i < incoming_train.size(); i++)
-//        in_waiting_list.append("Train " + std::to_string(incoming_train[i]->getId()) + ", ");
-//    emit update_in_waiting_list(QString::fromStdString(in_waiting_list));
-//    return;
-//}
+void Gate_In_Manager::put_train_at_entrance()
+{
+    Train* tmp = incoming_train.front();
+    incoming_train.pop_front();
+    std::string in_waiting_list = "Next Train: ";
+    for(unsigned int i = 0; i < incoming_train.size(); i++)
+        in_waiting_list.append("Train " + std::to_string(incoming_train[i]->getId()) + ", ");
+    in->setTrain(tmp);
+    in->setOccupied(true);
+    gate_in_ready = false;
+    std::deque <Infrastructure*> *path = this->navigate(in, this->check_free_platform(), in->getTrain()->getDirection());
+    if(path)
+        emit notify_train_depart(path);
+    else
+    {
+        in->setTrain(nullptr);
+        in->setOccupied(false);
+        gate_in_ready = true;
+        incoming_train.push_front(tmp);
+    }
+    return;
+}
+
+void Gate_In_Manager::train_depart(Infrastructure* start) // signal the train to move to its destination
+{
+    if(start->getTrain()->getDirection() == ENTERING)
+    {
+
+    }
+    emit train_in_entrance(pos, tmp);
+    emit update_in_waiting_list(QString::fromStdString(in_waiting_list));
+    return;
+}
 
 //void Gate_In_Manager::notify_train_exiting_platform(int pos, Train* input) // finished - tell animation and mainwindow to move the train
 //{
@@ -147,46 +169,63 @@ std::deque<Infrastructure *> *Gate_In_Manager::navigate(Infrastructure *start_po
     while(current != end_pos)
     {
         before = current;
-        if(direction == LEFT)
+        if(direction == ENTERING)
         {
             if(current->getLeft_list().size() > 0)
             {
-                before_after_list.push_back({current, current->getLeft_list().at(0)});
+
                 if(current->getLeft_list().size() > 1)
                     for(unsigned int i = 1; i < current->getLeft_list().size(); i++)
                     {
-                        branches.push(current->getLeft_list().at(i));
-                        before_after_list.push_back({current, current->getLeft_list().at(i)});
+                        if(current->getLeft_list().at(i)->getOccupied() == false)
+                        {
+                            branches.push(current->getLeft_list().at(i));
+                            before_after_list.push_back({current, current->getLeft_list().at(i)});
+                        }
                     }
-                current = current->getLeft_list().at(0);
+                if(current->getLeft_list().at(0)->getOccupied() == false)
+                {
+                    before_after_list.push_back({current, current->getLeft_list().at(0)});
+                    current = current->getLeft_list().at(0);
+                }
             }
         }
         else
         {
             if(current->getRight_list().size() > 0)
             {
-                before_after_list.push_back({current, current->getRight_list().at(0)});
+
                 if(current->getRight_list().size() > 1)
                     for(unsigned int i = 1; i < current->getRight_list().size(); i++)
                     {
-                        branches.push(current->getRight_list().at(i));
-                        before_after_list.push_back({current, current->getRight_list().at(i)});
+                        if(current->getRight_list().at(i)->getOccupied() == false)
+                        {
+                            branches.push(current->getRight_list().at(i));
+                            before_after_list.push_back({current, current->getRight_list().at(i)});
+                        }
                     }
-                current = current->getRight_list().at(0);
+                if(current->getRight_list().at(0)->getOccupied() == false)
+                {
+                    before_after_list.push_back({current, current->getRight_list().at(0)});
+                    current = current->getRight_list().at(0);
+                }
             }
         }
-        if(current->getType() == end_pos->getType() && end_pos->getType() == PLATFORM && current != end_pos)
+        if(current->getType() == end_pos->getType() && end_pos->getType() == PLATFORM)
         {
-            if(branches.empty()) // if it is empty, that means no path to that way right now or not possible
-                return nullptr;
-            current = branches.top();
-            branches.pop();
+            if(current != end_pos || end_pos->getOccupied() == true)
+            {
+                if(branches.empty()) // if it is empty, that means no path to that way right now or not possible
+                    return nullptr;
+                current = branches.top();
+                branches.pop();
+            }
         }
         else if(current->getLeft_list().size() > 1 && end_pos->getType() == MINE)
         {
             for(unsigned int i = 0; i < current->getLeft_list().size(); i++)
             {
-                if(current->getLeft_list().at(i) == end_pos)
+                if(current->getLeft_list().at(i) == end_pos && end_pos->getOccupied() == false)
                 {
                     before_after_list.push_back({current, current->getLeft_list().at(i)});
                     current = current->getLeft_list().at(i);
@@ -216,6 +255,12 @@ std::deque<Infrastructure *> *Gate_In_Manager::navigate(Infrastructure *start_po
             break;
     }
 
+    path->push_front(backtrack);
+
+    for(unsigned int i = 0; i < path->size(); i++)
+    {
+        path->at(i)->setOccupied(true);
+    }
     return path;
 }
 
@@ -250,17 +295,40 @@ std::deque<Infrastructure *> *Gate_In_Manager::navigate(Infrastructure *start_po
 //    return;
 //}
 
-//int Gate_In_Manager::check_free_platform() // help function - check available platform
+Infrastructure* Gate_In_Manager::check_free_platform() // check available platform that leads to an available mine group
+{
+    int available_mine = this->check_free_mine_group();
+    for(int i = 0; i < PLATFORM_SUM; i++)
+    {
+        if(platform_list[i]->getOccupied() == false)
+        {
+            for(unsigned int j = 0; j < platform_list[i]->getMines()->size(); j++)
+            {
+                if(platform_list[i]->getMines()->at(j) == available_mine)
+                    return platform_list[i];
+            }
+        }
+    }
+    return nullptr;
+}
+
+int Gate_In_Manager::check_free_mine_group() // return mine group that are available
+{
+    for(int i = 0; i < 3; i++)
+    {
+        for(unsigned int j = 0; j < mine_group[i].size(); j++)
+        {
+            if(mine_group[i].at(j)->getOccupied() == false)
+                return i;
+        }
+    }
+
+    return -1;
+}
+
+//void Gate_In_Manager::setMultiplier(int newMultiplier)
 //{
-//     cari platform yang kosong
-//        for(int i = 0; i < PLATFORM_SUM; i++)
-//        {
-//            if(!platforms[i])
-//            {
-//                return i;
-//            }
-//        }
-//    return -1;
+//    this->multiplier = newMultiplier;
 //}
 
 void Gate_In_Manager::left_initialization()
@@ -624,7 +692,7 @@ void Gate_In_Manager::mine_initialization()
     while(counter < 3)
     {
         Infrastructure* tmp = new Infrastructure(MINE, 1+counter, 0);
-        this->Mine_group[0].push_back(tmp);
+        this->mine_group[0].push_back(tmp);
         this->map[1+counter][0] = tmp;
         counter++;
     }
@@ -632,7 +700,7 @@ void Gate_In_Manager::mine_initialization()
     while(counter < 3)
     {
         Infrastructure* tmp = new Infrastructure(MINE, 5+counter, 0);
-        this->Mine_group[1].push_back(tmp);
+        this->mine_group[1].push_back(tmp);
         this->map[5+counter][0] = tmp;
         counter++;
     }
@@ -640,7 +708,7 @@ void Gate_In_Manager::mine_initialization()
     while(counter < 2)
     {
         Infrastructure* tmp = new Infrastructure(MINE, 11+counter, 0);
-        this->Mine_group[2].push_back(tmp);
+        this->mine_group[2].push_back(tmp);
         this->map[11+counter][0] = tmp;
         counter++;
     }
@@ -699,8 +767,3 @@ void Gate_In_Manager::platform_hand_initialization()
         this->map[2*i][22]->addRight(this->map[2*i][23]);
     }
 }
-
-//void Gate_In_Manager::setMultiplier(int newMultiplier)
-//{
-//    this->multiplier = newMultiplier;
-//}
