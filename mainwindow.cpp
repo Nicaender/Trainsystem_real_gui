@@ -83,6 +83,8 @@ void MainWindow::notified_put_train_on_canvas(Train *train_input)
 
 void MainWindow::notified_move_train(Infrastructure *now)
 {
+    if(now == nullptr)
+        return;
     int x = now->getX() - now->getTrain()->getBefore_x();
     int y = now->getY() - now->getTrain()->getBefore_y();
     for(unsigned int i = 0; i < PLATFORM_SUM+PLATFORM_SUM; i++)

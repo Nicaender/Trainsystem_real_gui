@@ -23,7 +23,7 @@ signals:
 
 private:
     int multiplier = 5;
-    int train_interval = 30;
+    int train_interval = 15;
 };
 
 #endif // TRAIN_MAKER_H

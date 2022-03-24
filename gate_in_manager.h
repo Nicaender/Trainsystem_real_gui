@@ -47,11 +47,11 @@ public slots:
 
 private:
     void put_train_at_entrance();
-    void train_depart(Infrastructure *start);
+    bool train_depart(Infrastructure *start);
     std::deque<Infrastructure*> *navigate(Infrastructure* start_pos, Infrastructure* end_pos, bool direction);
 
     Infrastructure *check_free_platform();
-    bool gate_in_ready = true, gate_out_ready = true, pathway = true;
+    bool gate_in_ready = true, gate_out_ready = true;
     int multiplier = 5;
     int timer = 0;
 
@@ -64,7 +64,7 @@ private:
     enum {ENTERING, EXITING};
 
     std::deque<Train*> incoming_train;
-    std::deque<Infrastructure*> outcoming_train_pathway;
+    std::vector<Infrastructure*> outcoming_train_pathway;
     std::deque<Infrastructure*> outcoming_train_gate;
 
     // Help attributes

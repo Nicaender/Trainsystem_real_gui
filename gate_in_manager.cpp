@@ -87,8 +87,17 @@ void Gate_In_Manager::run()
         // kalau ada yang di queue siap gerak
         if(!outcoming_train_gate.empty() && gate_out_ready == true)
             this->train_depart(outcoming_train_gate.front());
-        if(!outcoming_train_pathway.empty() && pathway == true)
-            this->train_depart(outcoming_train_pathway.front());
+        if(!outcoming_train_pathway.empty())
+        {
+            for(unsigned int i = 0; i < this->outcoming_train_pathway.size(); i++)
+            {
+                if(this->train_depart(outcoming_train_pathway[i]))
+                {
+                    this->outcoming_train_pathway.erase(this->outcoming_train_pathway.begin() + i);
+                    i--;
+                }
+            }
+        }
 
         // kalo ada kereta yang mau masuk, dan gate in ready, dan ada platform kosong, masukin ke platform
         if(!incoming_train.empty() && gate_in_ready)
@@ -116,13 +125,8 @@ void Gate_In_Manager::notified_train_arrived(Infrastructure *destination)
     {
         gate_in_ready = true;
     }
-    else if(destination->getType() == PLATFORM && destination->getTrain()->getDirection() == EXITING)
-    {
-        pathway = true;
-    }
     else if(destination->getType() == MINE && destination->getTrain()->getDirection() == ENTERING)
     {
-        pathway = true;
         destination->getTrain()->setDirection(EXITING);
     }
     destination->getTrain()->add_duration(destination->getStay());
@@ -147,6 +151,14 @@ void Gate_In_Manager::put_train_at_entrance()
     in->setTrain(tmp);
     in->setOccupied(true);
     gate_in_ready = false;
+    if(this->check_free_platform() == nullptr)
+    {
+        in->setTrain(nullptr);
+        in->setOccupied(false);
+        gate_in_ready = true;
+        incoming_train.push_front(tmp);
+        return;
+    }
     std::deque <Infrastructure*> *path = this->navigate(in, this->check_free_platform(), in->getTrain()->getDirection());
     if(path)
     {
@@ -163,21 +175,20 @@ void Gate_In_Manager::put_train_at_entrance()
     return;
 }
 
-void Gate_In_Manager::train_depart(Infrastructure* start) // signal the train to move to its destination
+bool Gate_In_Manager::train_depart(Infrastructure* start) // signal the train to move to its destination
 {
     if(start->getTrain()->getDirection() == ENTERING) // kalo masuk dari platform ke mine
     {
         std::pair<Infrastructure*, int>* available_mine = this->check_free_mine();
+        if(available_mine == nullptr)
+            return false;
         std::deque <Infrastructure*> *path = this->navigate(start, available_mine->first, start->getTrain()->getDirection());
         if(path)
         {
-            outcoming_train_pathway.pop_front();
             start->getTrain()->setOut_waiting_list(false);
             emit notify_train_depart(path);
-            pathway = false;
+            return true;
         }
-        else
-            pathway = true;
         delete available_mine;
     }
     else if(start->getTrain()->getDirection() == EXITING && start->getType() == PLATFORM) // kalo keluar dari platform ke out
@@ -185,10 +196,10 @@ void Gate_In_Manager::train_depart(Infrastructure* start) // signal the train to
         std::deque <Infrastructure*> *path = this->navigate(start, out, start->getTrain()->getDirection());
         if(path)
         {
-            outcoming_train_gate.pop_front();
             start->getTrain()->setOut_waiting_list(false);
             emit notify_train_depart(path);
             gate_out_ready = false;
+            return true;
         }
         else
             gate_out_ready = true;
@@ -200,25 +211,14 @@ void Gate_In_Manager::train_depart(Infrastructure* start) // signal the train to
             std::deque <Infrastructure*> *path = this->navigate(start, platform_list[i], start->getTrain()->getDirection());
             if(path)
             {
-                outcoming_train_pathway.pop_front();
                 start->getTrain()->setOut_waiting_list(false);
                 emit notify_train_depart(path);
-                pathway = false;
-                break;
+                return true;
             }
-            else
-                pathway = true;
         }
     }
-    return;
+    return false;
 }
-
-//void Gate_In_Manager::notify_train_exiting_platform(int pos, Train* input) // finished - tell animation and mainwindow to move the train
-//{
-//    emit notify_animation(pos, false, input);
-//    outcoming_train_pos.pop_front();
-//    return;
-//}
 
 std::deque<Infrastructure *> *Gate_In_Manager::navigate(Infrastructure *start_pos, Infrastructure *end_pos, bool direction)
 {
@@ -323,27 +323,6 @@ std::deque<Infrastructure *> *Gate_In_Manager::navigate(Infrastructure *start_po
     }
     return path;
 }
-
-//void Gate_In_Manager::setGate_out_cooldown(int newGate_out_cooldown)
-//{
-//    gate_out_cooldown = newGate_out_cooldown;
-//}
-
-//void Gate_In_Manager::notified_to_remove_train(int pos) // finished - delete the train after the train leaves the station
-//{
-//        delete platforms[pos];
-//        platforms[pos] = nullptr;
-//    train_out_cooldown = gate_out_cooldown;
-//    emit update_cooldown_canvas(train_out_cooldown);
-//    return;
-//}
-
-//void Gate_In_Manager::set_train_on_platform(int pos, Train* input) // help function - akan dipanggil oleh animation kalau sudah sampai kesana
-//{
-//        platforms[pos] = input;
-//    gate_in_ready = true;
-//    return;
-//}
 
 Infrastructure* Gate_In_Manager::check_free_platform() // check available platform that leads to an available mine group
 {
@@ -474,7 +453,7 @@ void Gate_In_Manager::left_hand_initialization()
     this->map[4][14]->addLeft(this->map[3][13]); // kiri atas
     this->map[4][14]->addRight(this->map[5][15]); // kanan bawah
     this->map[4][18]->addLeft(this->map[3][17]); // kiri atas
-    this->map[4][18]->addRight(this->map[5][19]); // kanan bawah
+    this->map[4][18]->addRight(this->map[4][19]); // kanan kanan
     this->map[4][20]->addLeft(this->map[5][19]); // kiri bawah
     // Line IV
     this->map[6][7]->addLeft(this->map[5][6]); // kiri atas

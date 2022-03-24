@@ -10,7 +10,6 @@ void Animation::run()
     while(true)
     {
         QMutex m;
-
         if(!this->path_list.empty())
         {
             Infrastructure *tmp_before, *tmp_after;
@@ -26,6 +25,7 @@ void Animation::run()
                 tmp_after->getTrain()->setBefore_y(tmp_before->getY());
                 m.unlock();
                 emit notify_move_train(tmp_after);
+                m.lock();
                 if(path_list[i].size() == 1)
                 {
                     while(!copy_path_list[i].empty())
@@ -38,6 +38,7 @@ void Animation::run()
                     emit notify_train_arrived(tmp_after);
                     i--;
                 }
+                m.unlock();
             }
             this->msleep(1000 / multiplier);
         }
