@@ -221,12 +221,15 @@ bool Gate_In_Manager::train_depart(Infrastructure* start) // signal the train to
 
 std::deque<Infrastructure *> *Gate_In_Manager::navigate(Infrastructure *start_pos, Infrastructure *end_pos, bool direction)
 {
-    Infrastructure *current = start_pos, *before, *backtrack = end_pos;
+    Infrastructure *current = start_pos, *before, *backtrack = end_pos, *avoid = nullptr;
     std::vector<std::pair<Infrastructure *, Infrastructure *>> before_after_list;
     std::stack<Infrastructure *> branches;
 
     if(!start_pos || !end_pos)
         return nullptr;
+
+    if(start_pos->getType() == MINE && direction == EXITING)
+        avoid = this->map[start_pos->getTrain()->getBefore_y()][start_pos->getTrain()->getBefore_x()];
 
     while(current != end_pos)
     {
@@ -241,14 +244,20 @@ std::deque<Infrastructure *> *Gate_In_Manager::navigate(Infrastructure *start_po
                     {
                         if(current->getLeft_list().at(i)->getOccupied() == false)
                         {
-                            branches.push(current->getLeft_list().at(i));
-                            before_after_list.push_back({current, current->getLeft_list().at(i)});
+                            if(current->getLeft_list().at(i) != avoid)
+                            {
+                                branches.push(current->getLeft_list().at(i));
+                                before_after_list.push_back({current, current->getLeft_list().at(i)});
+                            }
                         }
                     }
                 if(current->getLeft_list().at(0)->getOccupied() == false)
                 {
-                    before_after_list.push_back({current, current->getLeft_list().at(0)});
-                    current = current->getLeft_list().at(0);
+                    if(current->getLeft_list().at(0) != avoid)
+                    {
+                        before_after_list.push_back({current, current->getLeft_list().at(0)});
+                        current = current->getLeft_list().at(0);
+                    }
                 }
             }
         }
@@ -262,14 +271,20 @@ std::deque<Infrastructure *> *Gate_In_Manager::navigate(Infrastructure *start_po
                     {
                         if(current->getRight_list().at(i)->getOccupied() == false)
                         {
-                            branches.push(current->getRight_list().at(i));
-                            before_after_list.push_back({current, current->getRight_list().at(i)});
+                            if(current->getRight_list().at(i) != avoid)
+                            {
+                                branches.push(current->getRight_list().at(i));
+                                before_after_list.push_back({current, current->getRight_list().at(i)});
+                            }
                         }
                     }
                 if(current->getRight_list().at(0)->getOccupied() == false)
                 {
-                    before_after_list.push_back({current, current->getRight_list().at(0)});
-                    current = current->getRight_list().at(0);
+                    if(current->getRight_list().at(0) != avoid)
+                    {
+                        before_after_list.push_back({current, current->getRight_list().at(0)});
+                        current = current->getRight_list().at(0);
+                    }
                 }
             }
         }
