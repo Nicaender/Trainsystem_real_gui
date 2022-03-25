@@ -14,9 +14,9 @@ public:
     explicit Train_maker(QObject *parent = nullptr);
     void run();
 
-    void setMultiplier(int newMultiplier);
-
     void setTrain_interval(int newTrain_interval);
+
+    void set_multiplier(int new_multiplier);
 
 signals:
     void notify_train_incoming(Train*);
@@ -25,7 +25,7 @@ public slots:
     void notified_incoming_train_full(bool);
 
 private:
-    int multiplier = 5;
+    int multiplier = 1;
     int train_interval = 5;
     bool halt = false;
 };

@@ -8,7 +8,7 @@ Infrastructure::Infrastructure(int newType, int newY, int newX)
     if(this->type == PLATFORM)
         this->stay = 10;
     else if(this->type == MINE)
-        this->stay = 115;
+        this->stay = 60;
 
     this->mines = new std::vector <int>;
 }
@@ -81,4 +81,9 @@ std::vector<int> *Infrastructure::getMines() const
 void Infrastructure::setMines(const int &newMines)
 {
     this->mines->push_back(newMines);
+}
+
+void Infrastructure::set_stay(int new_stay)
+{
+    stay = new_stay;
 }

@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
         this->map_labels[i] = new QLabel(this);
         int x = i % MAX_X;
         int y = i / MAX_X;
-        this->map_labels[i]->setGeometry(40*x, 300 + 30*y, 40, 30);
+        this->map_labels[i]->setGeometry(BLOCK_X*x, 300 + BLOCK_Y*y, BLOCK_X, BLOCK_Y);
         this->map_labels[i]->setAutoFillBackground(true);
     }
 
@@ -27,7 +27,7 @@ MainWindow::MainWindow(QWidget *parent)
         this->train_labels[i] = new std::pair<QLabel*, Train*>;
         this->train_labels[i]->first = new QLabel(this);
         this->train_labels[i]->second = nullptr;
-        this->train_labels[i]->first->setGeometry(40*(MAX_X-1), 300, 40, 30);
+        this->train_labels[i]->first->setGeometry(BLOCK_X*(MAX_X-1), 300, BLOCK_X, BLOCK_Y);
         this->train_labels[i]->first->setStyleSheet("font: 10pt; color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border: 2px solid black");
         train_labels[i]->first->setAutoFillBackground(true);
         this->train_labels[i]->first->hide();
@@ -39,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(canvas_animation, SIGNAL(notify_train_arrived(Train*,Infrastructure*,Infrastructure*)), gate_in, SLOT(notified_train_arrived(Train*,Infrastructure*,Infrastructure*)));
 
     connect(gate_in, SIGNAL(notify_incoming_train_full(bool)), train_create, SLOT(notified_incoming_train_full(bool)));
+    connect(gate_in, SIGNAL(notify_update_incoming_train(QString)), this, SLOT(notified_update_incoming_train(QString)));
     connect(gate_in, SIGNAL(notify_color(int,int,int)), this, SLOT(notified_color(int,int,int)));
     connect(gate_in, SIGNAL(notify_train_label_attach(Train*)), this, SLOT(notified_train_label_attach(Train*)));
     connect(gate_in, SIGNAL(notify_put_train_on_canvas(Train*)), this, SLOT(notified_put_train_on_canvas(Train*)));
@@ -85,13 +86,11 @@ void MainWindow::notified_put_train_on_canvas(Train *train_input)
 
 void MainWindow::notified_move_train(Train* train_input,Infrastructure* now)
 {
-    int x = now->getX() - train_input->getBefore_x();
-    int y = now->getY() - train_input->getBefore_y();
     for(unsigned int i = 0; i < PLATFORM_SUM+PLATFORM_SUM; i++)
     {
         if(this->train_labels[i]->second == train_input)
         {
-            this->train_labels[i]->first->move(this->train_labels[i]->first->x() + x*40, this->train_labels[i]->first->y() + y*30);
+            this->train_labels[i]->first->move(now->getX()*BLOCK_X, 300 + now->getY()*BLOCK_Y);
             return;
         }
     }
@@ -104,7 +103,7 @@ void MainWindow::notified_train_label_detach(Train *train_input)
         if(this->train_labels[i]->second == train_input)
         {
             this->train_labels[i]->second = nullptr;
-            train_labels[i]->first->move(40*(MAX_X-1), 300);
+            train_labels[i]->first->move(BLOCK_X*(MAX_X-1), 300);
             train_labels[i]->first->setStyleSheet("font: 10pt; color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); border: 2px solid black");
             train_labels[i]->first->setText("");
             train_labels[i]->first->hide();
@@ -136,9 +135,41 @@ void MainWindow::notified_change_color(Train *train_input)
     }
 }
 
+void MainWindow::notified_update_incoming_train(QString input)
+{
+    ui->incoming_train_text->setText(input);
+}
+
 void MainWindow::start_simulation()
 {
     gate_in->start();
     canvas_animation->start();
     train_create->start();
 }
+
+void MainWindow::on_multiplier_button_clicked()
+{
+    int multi = ui->multiplier_spinbox->value();
+    gate_in->set_multiplier(multi);
+    canvas_animation->set_multiplier(multi);
+    train_create->set_multiplier(multi);
+}
+
+
+void MainWindow::on_platform_stay_button_clicked()
+{
+    gate_in->change_platform_duration(true, ui->platform_stay_spinbox->value());
+}
+
+
+void MainWindow::on_mine_duration_button_clicked()
+{
+    gate_in->change_platform_duration(false, ui->mine_duration_spinbox->value());
+}
+
+
+void MainWindow::on_train_speed_button_clicked()
+{
+    canvas_animation->set_block_per_second(ui->train_speed_spinbox->value());
+}
+

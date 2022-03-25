@@ -17,7 +17,9 @@ public:
     explicit Animation(QObject *parent = nullptr);
     void run();
 
-    void setMultiplier(int newMultiplier);
+    void set_multiplier(int new_multiplier);
+
+    void set_block_per_second(int new_block_per_second);
 
 signals:
     void notify_train_arrived(Train*,Infrastructure*, Infrastructure*);
@@ -28,7 +30,8 @@ public slots:
 
 private:
     std::vector<std::pair<std::pair<std::deque<Infrastructure *>, std::deque<Infrastructure *>>, Train*>> path_list; // path, full path, train
-    int multiplier = 5;
+    int multiplier = 1;
+    int block_per_second = 1;
 };
 
 #endif // ANIMATION_H

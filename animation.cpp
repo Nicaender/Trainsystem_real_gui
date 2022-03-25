@@ -16,14 +16,14 @@ void Animation::run()
             Infrastructure *before;
             for(unsigned int i = 0; i < path_list.size(); i++)
             {
-                if(path_list[i].first.first.size() != 1)
-                {
-                before = path_list[i].first.first.front();
-                path_list[i].first.first.pop_front();
-                path_list[i].second->setBefore_x(before->getX());
-                path_list[i].second->setBefore_y(before->getY());
-                emit notify_move_train(path_list[i].second, path_list[i].first.first.front());
-                }
+                    if(path_list[i].first.first.size() != 1)
+                    {
+                        before = path_list[i].first.first.front();
+                        path_list[i].first.first.pop_front();
+                        path_list[i].second->setBefore_x(before->getX());
+                        path_list[i].second->setBefore_y(before->getY());
+                        emit notify_move_train(path_list[i].second, path_list[i].first.first.front());
+                    }
             }
             for(unsigned int i = 0; i < path_list.size(); i++)
             {
@@ -40,7 +40,7 @@ void Animation::run()
                     i--;
                 }
             }
-            this->msleep(1000 / multiplier);
+            this->usleep((1000000 / block_per_second) / multiplier);
         }
         m.unlock();
     }
@@ -53,7 +53,12 @@ void Animation::notified_train_depart(std::deque<Infrastructure *> *path)
     return;
 }
 
-void Animation::setMultiplier(int newMultiplier)
+void Animation::set_block_per_second(int new_block_per_second)
 {
-    this->multiplier = newMultiplier;
+    block_per_second = new_block_per_second;
+}
+
+void Animation::set_multiplier(int new_multiplier)
+{
+    multiplier = new_multiplier;
 }
