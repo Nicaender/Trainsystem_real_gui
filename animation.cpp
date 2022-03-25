@@ -2,7 +2,7 @@
 
 Animation::Animation(QObject *parent) : QThread(parent)
 {
-
+    
 }
 
 void Animation::run()
@@ -16,14 +16,14 @@ void Animation::run()
             Infrastructure *before;
             for(unsigned int i = 0; i < path_list.size(); i++)
             {
-                    if(path_list[i].first.first.size() != 1)
-                    {
-                        before = path_list[i].first.first.front();
-                        path_list[i].first.first.pop_front();
-                        path_list[i].second->setBefore_x(before->getX());
-                        path_list[i].second->setBefore_y(before->getY());
-                        emit notify_move_train(path_list[i].second, path_list[i].first.first.front());
-                    }
+                if(path_list[i].first.first.size() != 1)
+                {
+                    before = path_list[i].first.first.front();
+                    path_list[i].first.first.pop_front();
+                    path_list[i].second->setBefore_x(before->getX());
+                    path_list[i].second->setBefore_y(before->getY());
+                    emit notify_move_train(path_list[i].second, path_list[i].first.first.front());
+                }
             }
             for(unsigned int i = 0; i < path_list.size(); i++)
             {
@@ -32,6 +32,8 @@ void Animation::run()
                     for(unsigned int j = 0; j < path_list[i].first.second.size(); j++)
                     {
                         path_list[i].first.second[j]->setOccupied(false);
+                        if(path_list[i].first.second[j]->getType() == 0)
+                            emit notify_color(path_list[i].first.second[j]->getX(), path_list[i].first.second[j]->getY(), path_list[i].first.second[j]->getType());
                     }
                     path_list[i].first.first.front()->setOccupied(true);
                     path_list[i].second->add_duration(path_list[i].first.first.front()->getStay());
