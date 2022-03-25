@@ -15,9 +15,9 @@ void Train_maker::run()
     {
         QMutex m;
         m.lock();
-        if(counter != 0)
+        if(counter > 0)
             counter--;
-        if(counter == 0)
+        if(counter == 0 && !halt)
         {
             Train* new_train = new Train((1+rand()%999));
             counter = this->train_interval;
@@ -37,4 +37,9 @@ void Train_maker::setMultiplier(int newMultiplier)
 void Train_maker::setTrain_interval(int newTrain_interval)
 {
     train_interval = newTrain_interval;
+}
+
+void Train_maker::notified_incoming_train_full(bool input)
+{
+    this->halt = input;
 }

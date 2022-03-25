@@ -13,25 +13,29 @@ void Animation::run()
         m.lock();
         if(!this->path_list.empty())
         {
-
-            Infrastructure *before = nullptr, *after = nullptr;
+            Infrastructure *before;
             for(unsigned int i = 0; i < path_list.size(); i++)
             {
+                if(path_list[i].first.first.size() != 1)
+                {
                 before = path_list[i].first.first.front();
                 path_list[i].first.first.pop_front();
-                after = path_list[i].first.first.front();
                 path_list[i].second->setBefore_x(before->getX());
                 path_list[i].second->setBefore_y(before->getY());
-                emit notify_move_train(path_list[i].second, after);
+                emit notify_move_train(path_list[i].second, path_list[i].first.first.front());
+                }
+            }
+            for(unsigned int i = 0; i < path_list.size(); i++)
+            {
                 if(path_list[i].first.first.size() == 1)
                 {
                     for(unsigned int j = 0; j < path_list[i].first.second.size(); j++)
                     {
                         path_list[i].first.second[j]->setOccupied(false);
                     }
-                    after->setOccupied(true);
-                    path_list[i].second->add_duration(after->getStay());
-                    emit notify_train_arrived(path_list[i].second, path_list[i].first.second.front(), after);
+                    path_list[i].first.first.front()->setOccupied(true);
+                    path_list[i].second->add_duration(path_list[i].first.first.front()->getStay());
+                    emit notify_train_arrived(path_list[i].second, path_list[i].first.second.front(), path_list[i].first.first.front());
                     path_list.erase(path_list.begin() + i);
                     i--;
                 }

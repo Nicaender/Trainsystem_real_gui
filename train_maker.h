@@ -21,9 +21,13 @@ public:
 signals:
     void notify_train_incoming(Train*);
 
+public slots:
+    void notified_incoming_train_full(bool);
+
 private:
     int multiplier = 5;
-    int train_interval = 15;
+    int train_interval = 5;
+    bool halt = false;
 };
 
 #endif // TRAIN_MAKER_H

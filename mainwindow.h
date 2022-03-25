@@ -38,7 +38,6 @@ private:
     QLabel** map_labels;
 
     void start_simulation();
-    void background_initialization();
     Ui::MainWindow *ui;
 };
 #endif // MAINWINDOW_H

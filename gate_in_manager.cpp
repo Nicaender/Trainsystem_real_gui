@@ -19,6 +19,20 @@ Gate_In_Manager::Gate_In_Manager(QObject *parent) : QThread(parent)
     out = map[2][MAX_X-1];
 }
 
+Gate_In_Manager::~Gate_In_Manager()
+{
+    for(int i = 0; i < MAX_Y; i++)
+        for(int j = 0; j < MAX_X; j++)
+            if(this->map[i][j])
+                delete this->map[i][j];
+
+    while(!incoming_train.empty())
+    {
+        delete incoming_train.front();
+        incoming_train.pop_front();
+    }
+}
+
 void Gate_In_Manager::run()
 {
     while(true)
@@ -125,6 +139,11 @@ void Gate_In_Manager::notified_train_arrived(Train* train_input,Infrastructure* 
 void Gate_In_Manager::notified_train_incoming(Train *train_input)
 {
     incoming_train.push_back(train_input);
+    if(incoming_train.size() > 9)
+    {
+        this->incoming_train_full = true;
+        emit notify_incoming_train_full(incoming_train_full);
+    }
     return;
 }
 
@@ -136,6 +155,11 @@ void Gate_In_Manager::put_train_at_entrance()
     {
         in->setTrain(tmp);
         incoming_train.pop_front();
+        if(incoming_train_full && incoming_train.size() < 6)
+        {
+            this->incoming_train_full = false;
+            emit notify_incoming_train_full(incoming_train_full);
+        }
         emit notify_train_label_attach(tmp);
         emit notify_put_train_on_canvas(tmp);
         emit notify_train_depart(path);
@@ -198,12 +222,15 @@ bool Gate_In_Manager::train_depart(Infrastructure* start) // signal the train to
 
 std::deque<Infrastructure *> *Gate_In_Manager::navigate(Infrastructure *start_pos, Infrastructure *end_pos, bool direction)
 {
-    Infrastructure *current = start_pos, *before, *backtrack = end_pos;
+    Infrastructure *current = start_pos, *before, *backtrack = end_pos, *avoid = nullptr;
     std::vector<std::pair<Infrastructure *, Infrastructure *>> before_after_list;
     std::stack<Infrastructure *> branches;
 
     if(!start_pos || !end_pos)
         return nullptr;
+
+    if(start_pos->getType() == MINE && direction == EXITING)
+        avoid = this->map[start_pos->getTrain()->getBefore_y()][start_pos->getTrain()->getBefore_x()];
 
     while(current != end_pos)
     {
@@ -218,14 +245,20 @@ std::deque<Infrastructure *> *Gate_In_Manager::navigate(Infrastructure *start_po
                     {
                         if(current->getLeft_list().at(i)->getOccupied() == false)
                         {
-                            branches.push(current->getLeft_list().at(i));
-                            before_after_list.push_back({current, current->getLeft_list().at(i)});
+                            if(current->getLeft_list().at(i) != avoid)
+                            {
+                                branches.push(current->getLeft_list().at(i));
+                                before_after_list.push_back({current, current->getLeft_list().at(i)});
+                            }
                         }
                     }
                 if(current->getLeft_list().at(0)->getOccupied() == false)
                 {
-                    before_after_list.push_back({current, current->getLeft_list().at(0)});
-                    current = current->getLeft_list().at(0);
+                    if(current->getLeft_list().at(0) != avoid)
+                    {
+                        before_after_list.push_back({current, current->getLeft_list().at(0)});
+                        current = current->getLeft_list().at(0);
+                    }
                 }
             }
         }
@@ -239,14 +272,20 @@ std::deque<Infrastructure *> *Gate_In_Manager::navigate(Infrastructure *start_po
                     {
                         if(current->getRight_list().at(i)->getOccupied() == false)
                         {
-                            branches.push(current->getRight_list().at(i));
-                            before_after_list.push_back({current, current->getRight_list().at(i)});
+                            if(current->getRight_list().at(i) != avoid)
+                            {
+                                branches.push(current->getRight_list().at(i));
+                                before_after_list.push_back({current, current->getRight_list().at(i)});
+                            }
                         }
                     }
                 if(current->getRight_list().at(0)->getOccupied() == false)
                 {
-                    before_after_list.push_back({current, current->getRight_list().at(0)});
-                    current = current->getRight_list().at(0);
+                    if(current->getRight_list().at(0) != avoid)
+                    {
+                        before_after_list.push_back({current, current->getRight_list().at(0)});
+                        current = current->getRight_list().at(0);
+                    }
                 }
             }
         }
