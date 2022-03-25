@@ -28,6 +28,10 @@ public:
 
     void change_platform_duration(bool platform, int duration);
 
+    void set_pause(bool new_pause);
+
+    bool get_pause() const;
+
 signals:
     void notify_train_label_attach(Train*);
     void notify_put_train_on_canvas(Train*);
@@ -38,6 +42,7 @@ signals:
     void notify_incoming_train_full(bool);
     void notify_update_incoming_train(QString);
     void notify_path_color(int, int);
+    void notify_update_current_time(int);
 
 public slots:
     void notified_train_arrived(Train*,Infrastructure*, Infrastructure*);
@@ -49,7 +54,7 @@ private:
     std::deque<Infrastructure*> *navigate(Infrastructure* start_pos, Infrastructure* end_pos, bool direction);
 
     Infrastructure *check_free_platform();
-    bool gate_in_ready = true, gate_out_ready = true, incoming_train_full = false;
+    bool gate_in_ready = true, gate_out_ready = true, incoming_train_full = false, pause = false;
     int multiplier = 1;
     int timer = 0;
 

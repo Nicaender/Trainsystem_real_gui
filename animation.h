@@ -21,6 +21,9 @@ public:
 
     void set_block_per_second(int new_block_per_second);
 
+    bool get_pause() const;
+    void set_pause(bool new_pause);
+
 signals:
     void notify_train_arrived(Train*,Infrastructure*, Infrastructure*);
     void notify_move_train(Train*,Infrastructure*);
@@ -33,6 +36,7 @@ private:
     std::vector<std::pair<std::pair<std::deque<Infrastructure *>, std::deque<Infrastructure *>>, Train*>> path_list; // path, full path, train
     int multiplier = 1;
     int block_per_second = 1;
+    bool pause = false;
 };
 
 #endif // ANIMATION_H

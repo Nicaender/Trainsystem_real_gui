@@ -13,6 +13,10 @@ void Train_maker::run()
     int counter = 0;
     while(true)
     {
+        while(pause)
+        {
+            this->msleep(20);
+        }
         QMutex m;
         m.lock();
         if(counter > 0)
@@ -37,6 +41,16 @@ void Train_maker::setTrain_interval(int newTrain_interval)
 void Train_maker::notified_incoming_train_full(bool input)
 {
     this->halt = input;
+}
+
+bool Train_maker::get_pause() const
+{
+    return pause;
+}
+
+void Train_maker::set_pause(bool new_pause)
+{
+    pause = new_pause;
 }
 
 void Train_maker::set_multiplier(int new_multiplier)
