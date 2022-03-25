@@ -13,24 +13,30 @@ void Animation::run()
         m.lock();
         if(!this->path_list.empty())
         {
-            Infrastructure *tmp_before, *tmp_after;
+            Infrastructure *before;
             for(unsigned int i = 0; i < path_list.size(); i++)
             {
-                tmp_before = path_list[i].front();
-                path_list[i].pop_front();
-                tmp_after = path_list[i].front();
-                tmp_after->setTrain(tmp_before->getTrain());
-                tmp_before->setTrain(nullptr);
-                if(path_list[i].size() == 1)
+                if(path_list[i].first.first.size() != 1)
                 {
-                    while(!copy_path_list[i].empty())
+                before = path_list[i].first.first.front();
+                path_list[i].first.first.pop_front();
+                path_list[i].second->setBefore_x(before->getX());
+                path_list[i].second->setBefore_y(before->getY());
+                emit notify_move_train(path_list[i].second, path_list[i].first.first.front());
+                }
+            }
+            for(unsigned int i = 0; i < path_list.size(); i++)
+            {
+                if(path_list[i].first.first.size() == 1)
+                {
+                    for(unsigned int j = 0; j < path_list[i].first.second.size(); j++)
                     {
-                        copy_path_list[i].front()->setOccupied(false);
-                        copy_path_list[i].pop_front();
+                        path_list[i].first.second[j]->setOccupied(false);
                     }
-                    copy_path_list.erase(copy_path_list.begin() + i);
+                    path_list[i].first.first.front()->setOccupied(true);
+                    path_list[i].second->add_duration(path_list[i].first.first.front()->getStay());
+                    emit notify_train_arrived(path_list[i].second, path_list[i].first.second.front(), path_list[i].first.first.front());
                     path_list.erase(path_list.begin() + i);
-                    emit notify_train_arrived(tmp_after);
                     i--;
                 }
             }
@@ -42,8 +48,7 @@ void Animation::run()
 
 void Animation::notified_train_depart(std::deque<Infrastructure *> *path)
 {
-    this->path_list.push_back(*path);
-    this->copy_path_list.push_back(*path);
+    this->path_list.push_back({{*path, *path}, path->front()->getTrain()});
     delete path;
     return;
 }

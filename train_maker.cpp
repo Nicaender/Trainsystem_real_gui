@@ -15,13 +15,14 @@ void Train_maker::run()
     {
         QMutex m;
         m.lock();
-        if(counter != 0)
+        if(counter > 0)
             counter--;
-        if(counter == 0)
+        if(counter == 0 && !halt)
         {
             Train* new_train = new Train((1+rand()%999));
             counter = this->train_interval;
-            emit notify_gate_in(new_train);
+            qDebug() << QString::fromStdString("Train ") + QString::number(new_train->getId()) + " is coming";
+            emit notify_train_incoming(new_train);
         }
         this->msleep(1000 / multiplier);
         m.unlock();
@@ -33,12 +34,12 @@ void Train_maker::setMultiplier(int newMultiplier)
     this->multiplier = newMultiplier;
 }
 
-void Train_maker::setStay_duration(int newStay_duration)
-{
-    stay_duration = newStay_duration;
-}
-
 void Train_maker::setTrain_interval(int newTrain_interval)
 {
     train_interval = newTrain_interval;
+}
+
+void Train_maker::notified_incoming_train_full(bool input)
+{
+    this->halt = input;
 }

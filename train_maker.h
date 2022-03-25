@@ -14,20 +14,20 @@ public:
     explicit Train_maker(QObject *parent = nullptr);
     void run();
 
-
     void setMultiplier(int newMultiplier);
-
-    void setStay_duration(int newStay_duration);
 
     void setTrain_interval(int newTrain_interval);
 
 signals:
-    void notify_gate_in(Train*);
+    void notify_train_incoming(Train*);
+
+public slots:
+    void notified_incoming_train_full(bool);
 
 private:
-    int multiplier = 1;
-    int stay_duration = 15;
-    int train_interval = 10;
+    int multiplier = 5;
+    int train_interval = 5;
+    bool halt = false;
 };
 
 #endif // TRAIN_MAKER_H
