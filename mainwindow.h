@@ -32,6 +32,7 @@ public slots:
     void notified_change_color(Train*);
     void notified_update_incoming_train(QString);
     void notified_path_color(int, int);
+    void notified_update_current_time(int);
 
 private slots:
 
@@ -43,12 +44,17 @@ private slots:
 
     void on_train_speed_button_clicked();
 
+    void on_train_interval_button_clicked();
+
+    void on_pause_button_clicked();
+
 private:
     Gate_In_Manager* gate_in;
     Train_maker* train_create;
     Animation* canvas_animation;
     std::pair<QLabel*, Train*> **train_labels;
     QLabel** map_labels;
+    bool start = false;
 
     void start_simulation();
     Ui::MainWindow *ui;

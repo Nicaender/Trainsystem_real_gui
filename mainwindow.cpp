@@ -18,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
         int x = i % MAX_X;
         int y = i / MAX_X;
         this->map_labels[i]->setGeometry(BLOCK_X*x, 300 + BLOCK_Y*y, BLOCK_X, BLOCK_Y);
-        this->map_labels[i]->setAutoFillBackground(true);
+        this->map_labels[i]->setAutoFillBackground(false);
     }
 
     train_labels = new std::pair<QLabel*, Train*>*[PLATFORM_SUM+PLATFORM_SUM];
@@ -39,6 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(canvas_animation, SIGNAL(notify_train_arrived(Train*,Infrastructure*,Infrastructure*)), gate_in, SLOT(notified_train_arrived(Train*,Infrastructure*,Infrastructure*)));
     connect(canvas_animation, SIGNAL(notify_color(int,int,int)), this, SLOT(notified_color(int,int,int)));
 
+    connect(gate_in, SIGNAL(notify_update_current_time(int)), this, SLOT(notified_update_current_time(int)));
     connect(gate_in, SIGNAL(notify_incoming_train_full(bool)), train_create, SLOT(notified_incoming_train_full(bool)));
     connect(gate_in, SIGNAL(notify_update_incoming_train(QString)), this, SLOT(notified_update_incoming_train(QString)));
     connect(gate_in, SIGNAL(notify_path_color(int,int)), this, SLOT(notified_path_color(int,int)));
@@ -50,7 +51,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(gate_in, SIGNAL(notify_train_label_detach(Train*)), this, SLOT(notified_train_label_detach(Train*)));
 
     this->gate_in->map_coloring();
-    this->start_simulation();
 }
 
 MainWindow::~MainWindow()
@@ -123,6 +123,7 @@ void MainWindow::notified_color(int x, int y, int type)
         this->map_labels[y2 + x]->setStyleSheet("background-color: rgb(205, 205, 255); border: 1px solid black");
     else
         this->map_labels[y2 + x]->setStyleSheet("background-color: rgb(105, 155, 205); border: 1px solid black");
+    this->map_labels[y2 + x]->setAutoFillBackground(true);
 }
 
 void MainWindow::notified_change_color(Train *train_input)
@@ -146,6 +147,14 @@ void MainWindow::notified_path_color(int x, int y)
 {
     int y2 = (39) * y;
     this->map_labels[y2 + x]->setStyleSheet("background-color: rgb(255, 105, 105); border: 1px solid black");
+}
+
+void MainWindow::notified_update_current_time(int second)
+{
+    int minute = second / 60;
+    int hour = minute / 60;
+    std::string real_time = "Current time: " + std::to_string(hour/10) + std::to_string(hour%10) + ':' + std::to_string((minute/10)%6) + std::to_string(minute%10) + ':' + std::to_string((second/10)%6) + std::to_string(second%10);
+    ui->current_time->setText(QString::fromStdString(real_time));
 }
 
 void MainWindow::start_simulation()
@@ -179,5 +188,38 @@ void MainWindow::on_mine_duration_button_clicked()
 void MainWindow::on_train_speed_button_clicked()
 {
     canvas_animation->set_block_per_second(ui->train_speed_spinbox->value());
+    ui->train_speed_desc->setText(QString::fromStdString("Current train speed: " + std::to_string(ui->train_speed_spinbox->value()) + " block(s) per second"));
+}
+
+
+void MainWindow::on_train_interval_button_clicked()
+{
+    train_create->setTrain_interval(ui->train_interval_spinbox->value());
+}
+
+
+void MainWindow::on_pause_button_clicked()
+{
+    if(start == false)
+    {
+        start = true;
+        ui->pause_button->setText("Pause");
+        this->start_simulation();
+        return;
+    }
+    if(gate_in->get_pause())
+    {
+        gate_in->set_pause(false);
+        canvas_animation->set_pause(false);
+        train_create->set_pause(false);
+        ui->pause_button->setText("Pause");
+    }
+    else
+    {
+        gate_in->set_pause(true);
+        canvas_animation->set_pause(true);
+        train_create->set_pause(true);
+        ui->pause_button->setText("Continue");
+    }
 }
 

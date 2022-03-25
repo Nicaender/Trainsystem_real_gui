@@ -36,10 +36,15 @@ void Gate_In_Manager::run()
 {
     while(true)
     {
+        while(pause)
+        {
+            this->msleep(20);
+        }
         QMutex m;
         m.lock();
         qDebug() << timer;
         timer++;
+        emit notify_update_current_time(timer);
 
         // kurangin stay duration setiap kereta di platform dan mine
         for(int i = 0; i < 3; i++)
@@ -143,7 +148,7 @@ void Gate_In_Manager::notified_train_incoming(Train *train_input)
         this->incoming_train_full = true;
         emit notify_incoming_train_full(incoming_train_full);
     }
-    std::string in_queue = "Incoming Train: ";
+    std::string in_queue = "Incoming train: ";
     for(unsigned int i = 0 ; i < incoming_train.size(); i++)
     {
         in_queue.append("Train " + std::to_string(incoming_train[i]->getId()) + ", ");
@@ -181,7 +186,7 @@ void Gate_In_Manager::put_train_at_entrance()
     {
         in->setTrain(tmp);
         incoming_train.pop_front();
-        std::string in_queue = "Incoming Train: ";
+        std::string in_queue = "Incoming train: ";
         for(unsigned int i = 0 ; i < incoming_train.size(); i++)
         {
             in_queue.append("Train " + std::to_string(incoming_train[i]->getId()) + ", ");
@@ -396,6 +401,16 @@ Infrastructure* Gate_In_Manager::check_free_platform() // check available platfo
         }
     }
     return nullptr;
+}
+
+bool Gate_In_Manager::get_pause() const
+{
+    return pause;
+}
+
+void Gate_In_Manager::set_pause(bool new_pause)
+{
+    pause = new_pause;
 }
 
 void Gate_In_Manager::set_multiplier(int new_multiplier)
