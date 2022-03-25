@@ -371,6 +371,8 @@ std::deque<Infrastructure *> *Gate_In_Manager::navigate(Infrastructure *start_po
     for(unsigned int i = 0; i < path->size(); i++)
     {
         path->at(i)->setOccupied(true);
+        if(path->at(i)->getType() == RAIL)
+            emit notify_path_color(path->at(i)->getX(), path->at(i)->getY());
     }
     return path;
 }

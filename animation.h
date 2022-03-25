@@ -24,6 +24,7 @@ public:
 signals:
     void notify_train_arrived(Train*,Infrastructure*, Infrastructure*);
     void notify_move_train(Train*,Infrastructure*);
+    void notify_color(int,int,int);
 
 public slots:
     void notified_train_depart(std::deque <Infrastructure*>*);

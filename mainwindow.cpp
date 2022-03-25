@@ -37,9 +37,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(canvas_animation, SIGNAL(notify_move_train(Train*,Infrastructure*)), this, SLOT(notified_move_train(Train*,Infrastructure*)));
     connect(canvas_animation, SIGNAL(notify_train_arrived(Train*,Infrastructure*,Infrastructure*)), gate_in, SLOT(notified_train_arrived(Train*,Infrastructure*,Infrastructure*)));
+    connect(canvas_animation, SIGNAL(notify_color(int,int,int)), this, SLOT(notified_color(int,int,int)));
 
     connect(gate_in, SIGNAL(notify_incoming_train_full(bool)), train_create, SLOT(notified_incoming_train_full(bool)));
     connect(gate_in, SIGNAL(notify_update_incoming_train(QString)), this, SLOT(notified_update_incoming_train(QString)));
+    connect(gate_in, SIGNAL(notify_path_color(int,int)), this, SLOT(notified_path_color(int,int)));
     connect(gate_in, SIGNAL(notify_color(int,int,int)), this, SLOT(notified_color(int,int,int)));
     connect(gate_in, SIGNAL(notify_train_label_attach(Train*)), this, SLOT(notified_train_label_attach(Train*)));
     connect(gate_in, SIGNAL(notify_put_train_on_canvas(Train*)), this, SLOT(notified_put_train_on_canvas(Train*)));
@@ -120,7 +122,7 @@ void MainWindow::notified_color(int x, int y, int type)
     else if(type == 1)
         this->map_labels[y2 + x]->setStyleSheet("background-color: rgb(205, 205, 255); border: 1px solid black");
     else
-        this->map_labels[y2 + x]->setStyleSheet("background-color: rgb(255, 205, 205); border: 1px solid black");
+        this->map_labels[y2 + x]->setStyleSheet("background-color: rgb(105, 155, 205); border: 1px solid black");
 }
 
 void MainWindow::notified_change_color(Train *train_input)
@@ -129,7 +131,7 @@ void MainWindow::notified_change_color(Train *train_input)
     {
         if(this->train_labels[i]->second == train_input)
         {
-            this->train_labels[i]->first->setStyleSheet("font: 10pt; color: rgb(0, 0, 0); background-color: rgb(255, 155, 155); border: 2px solid black");
+            this->train_labels[i]->first->setStyleSheet("font: 10pt; color: rgb(0, 0, 0); background-color: rgb(255, 255, 155); border: 2px solid black");
             return;
         }
     }
@@ -138,6 +140,12 @@ void MainWindow::notified_change_color(Train *train_input)
 void MainWindow::notified_update_incoming_train(QString input)
 {
     ui->incoming_train_text->setText(input);
+}
+
+void MainWindow::notified_path_color(int x, int y)
+{
+    int y2 = (39) * y;
+    this->map_labels[y2 + x]->setStyleSheet("background-color: rgb(255, 105, 105); border: 1px solid black");
 }
 
 void MainWindow::start_simulation()

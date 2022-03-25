@@ -31,6 +31,7 @@ public slots:
     void notified_color(int, int, int);
     void notified_change_color(Train*);
     void notified_update_incoming_train(QString);
+    void notified_path_color(int, int);
 
 private slots:
 

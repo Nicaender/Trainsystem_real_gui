@@ -37,6 +37,7 @@ signals:
     void notify_change_color(Train*);
     void notify_incoming_train_full(bool);
     void notify_update_incoming_train(QString);
+    void notify_path_color(int, int);
 
 public slots:
     void notified_train_arrived(Train*,Infrastructure*, Infrastructure*);
