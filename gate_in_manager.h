@@ -24,6 +24,10 @@ public:
 
     void map_coloring();
 
+    void set_multiplier(int new_multiplier);
+
+    void change_platform_duration(bool platform, int duration);
+
 signals:
     void notify_train_label_attach(Train*);
     void notify_put_train_on_canvas(Train*);
@@ -32,6 +36,7 @@ signals:
     void notify_color(int,int,int);
     void notify_change_color(Train*);
     void notify_incoming_train_full(bool);
+    void notify_update_incoming_train(QString);
 
 public slots:
     void notified_train_arrived(Train*,Infrastructure*, Infrastructure*);
@@ -44,7 +49,7 @@ private:
 
     Infrastructure *check_free_platform();
     bool gate_in_ready = true, gate_out_ready = true, incoming_train_full = false;
-    int multiplier = 5;
+    int multiplier = 1;
     int timer = 0;
 
     Infrastructure* map[MAX_Y][MAX_X];

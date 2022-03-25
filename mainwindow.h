@@ -6,6 +6,9 @@
 #include <train_maker.h>
 #include <animation.h>
 
+#define BLOCK_X 40
+#define BLOCK_Y 30
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -27,8 +30,15 @@ public slots:
     void notified_train_label_detach(Train*);
     void notified_color(int, int, int);
     void notified_change_color(Train*);
+    void notified_update_incoming_train(QString);
 
 private slots:
+
+    void on_multiplier_button_clicked();
+
+    void on_platform_stay_button_clicked();
+
+    void on_mine_duration_button_clicked();
 
 private:
     Gate_In_Manager* gate_in;

@@ -143,7 +143,34 @@ void Gate_In_Manager::notified_train_incoming(Train *train_input)
         this->incoming_train_full = true;
         emit notify_incoming_train_full(incoming_train_full);
     }
+    std::string in_queue = "Incoming Train: ";
+    for(unsigned int i = 0 ; i < incoming_train.size(); i++)
+    {
+        in_queue.append("Train " + std::to_string(incoming_train[i]->getId()) + ", ");
+    }
+    emit notify_update_incoming_train(QString::fromStdString(in_queue));
     return;
+}
+
+void Gate_In_Manager::change_platform_duration(bool platform, int duration)
+{
+    if(platform)
+    {
+        for(int i = 0; i < PLATFORM_SUM; i++)
+        {
+            platform_list[i]->set_stay(duration);
+        }
+    }
+    else
+    {
+        for(int i = 0; i < 3; i++)
+        {
+            for(unsigned int j = 0; j < mine_group[i].size(); j++)
+            {
+                mine_group[i].at(j)->set_stay(duration);
+            }
+        }
+    }
 }
 
 void Gate_In_Manager::put_train_at_entrance()
@@ -154,6 +181,12 @@ void Gate_In_Manager::put_train_at_entrance()
     {
         in->setTrain(tmp);
         incoming_train.pop_front();
+        std::string in_queue = "Incoming Train: ";
+        for(unsigned int i = 0 ; i < incoming_train.size(); i++)
+        {
+            in_queue.append("Train " + std::to_string(incoming_train[i]->getId()) + ", ");
+        }
+        emit notify_update_incoming_train(QString::fromStdString(in_queue));
         if(incoming_train_full && incoming_train.size() < 6)
         {
             this->incoming_train_full = false;
@@ -361,6 +394,11 @@ Infrastructure* Gate_In_Manager::check_free_platform() // check available platfo
         }
     }
     return nullptr;
+}
+
+void Gate_In_Manager::set_multiplier(int new_multiplier)
+{
+    multiplier = new_multiplier;
 }
 
 std::pair<Infrastructure*, int>* Gate_In_Manager::check_free_mine() // return mine group that are available

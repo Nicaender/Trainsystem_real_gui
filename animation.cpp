@@ -53,7 +53,7 @@ void Animation::notified_train_depart(std::deque<Infrastructure *> *path)
     return;
 }
 
-void Animation::setMultiplier(int newMultiplier)
+void Animation::set_multiplier(int new_multiplier)
 {
-    this->multiplier = newMultiplier;
+    multiplier = new_multiplier;
 }

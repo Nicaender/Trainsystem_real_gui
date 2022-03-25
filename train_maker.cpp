@@ -29,11 +29,6 @@ void Train_maker::run()
     }
 }
 
-void Train_maker::setMultiplier(int newMultiplier)
-{
-    this->multiplier = newMultiplier;
-}
-
 void Train_maker::setTrain_interval(int newTrain_interval)
 {
     train_interval = newTrain_interval;
@@ -42,4 +37,9 @@ void Train_maker::setTrain_interval(int newTrain_interval)
 void Train_maker::notified_incoming_train_full(bool input)
 {
     this->halt = input;
+}
+
+void Train_maker::set_multiplier(int new_multiplier)
+{
+    multiplier = new_multiplier;
 }
