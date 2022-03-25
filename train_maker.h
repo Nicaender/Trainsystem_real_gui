@@ -18,6 +18,9 @@ public:
 
     void set_multiplier(int new_multiplier);
 
+    bool get_pause() const;
+    void set_pause(bool new_pause);
+
 signals:
     void notify_train_incoming(Train*);
 
@@ -26,8 +29,8 @@ public slots:
 
 private:
     int multiplier = 1;
-    int train_interval = 5;
-    bool halt = false;
+    int train_interval = 20;
+    bool halt = false, pause = false;
 };
 
 #endif // TRAIN_MAKER_H

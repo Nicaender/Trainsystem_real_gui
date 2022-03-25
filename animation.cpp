@@ -9,6 +9,10 @@ void Animation::run()
 {
     while(true)
     {
+        while(pause)
+        {
+            this->msleep(20);
+        }
         QMutex m;
         m.lock();
         if(!this->path_list.empty())
@@ -53,6 +57,16 @@ void Animation::notified_train_depart(std::deque<Infrastructure *> *path)
     this->path_list.push_back({{*path, *path}, path->front()->getTrain()});
     delete path;
     return;
+}
+
+bool Animation::get_pause() const
+{
+    return pause;
+}
+
+void Animation::set_pause(bool new_pause)
+{
+    pause = new_pause;
 }
 
 void Animation::set_block_per_second(int new_block_per_second)
