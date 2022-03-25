@@ -16,8 +16,6 @@ void Animation::run()
             Infrastructure *before;
             for(unsigned int i = 0; i < path_list.size(); i++)
             {
-                for(int j = 0; j < this->block_per_second; j++)
-                {
                     if(path_list[i].first.first.size() != 1)
                     {
                         before = path_list[i].first.first.front();
@@ -26,7 +24,6 @@ void Animation::run()
                         path_list[i].second->setBefore_y(before->getY());
                         emit notify_move_train(path_list[i].second, path_list[i].first.first.front());
                     }
-                }
             }
             for(unsigned int i = 0; i < path_list.size(); i++)
             {
@@ -43,7 +40,7 @@ void Animation::run()
                     i--;
                 }
             }
-            this->msleep(1000 / multiplier);
+            this->usleep((1000000 / block_per_second) / multiplier);
         }
         m.unlock();
     }

@@ -99,7 +99,7 @@ void Gate_In_Manager::run()
             gate_in_ready = false;
             this->put_train_at_entrance();
         }
-        this->msleep(1000 / multiplier);
+        this->usleep(1000000 / multiplier);
         m.unlock();
     }
 }
