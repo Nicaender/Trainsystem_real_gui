@@ -40,6 +40,8 @@ private slots:
 
     void on_mine_duration_button_clicked();
 
+    void on_train_speed_button_clicked();
+
 private:
     Gate_In_Manager* gate_in;
     Train_maker* train_create;

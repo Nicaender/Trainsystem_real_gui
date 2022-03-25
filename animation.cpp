@@ -16,13 +16,16 @@ void Animation::run()
             Infrastructure *before;
             for(unsigned int i = 0; i < path_list.size(); i++)
             {
-                if(path_list[i].first.first.size() != 1)
+                for(int j = 0; j < this->block_per_second; j++)
                 {
-                before = path_list[i].first.first.front();
-                path_list[i].first.first.pop_front();
-                path_list[i].second->setBefore_x(before->getX());
-                path_list[i].second->setBefore_y(before->getY());
-                emit notify_move_train(path_list[i].second, path_list[i].first.first.front());
+                    if(path_list[i].first.first.size() != 1)
+                    {
+                        before = path_list[i].first.first.front();
+                        path_list[i].first.first.pop_front();
+                        path_list[i].second->setBefore_x(before->getX());
+                        path_list[i].second->setBefore_y(before->getY());
+                        emit notify_move_train(path_list[i].second, path_list[i].first.first.front());
+                    }
                 }
             }
             for(unsigned int i = 0; i < path_list.size(); i++)
@@ -51,6 +54,11 @@ void Animation::notified_train_depart(std::deque<Infrastructure *> *path)
     this->path_list.push_back({{*path, *path}, path->front()->getTrain()});
     delete path;
     return;
+}
+
+void Animation::set_block_per_second(int new_block_per_second)
+{
+    block_per_second = new_block_per_second;
 }
 
 void Animation::set_multiplier(int new_multiplier)

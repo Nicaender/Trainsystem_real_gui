@@ -34,6 +34,9 @@ public:
     QLabel *mine_duration_text;
     QPushButton *mine_duration_button;
     QSpinBox *mine_duration_spinbox;
+    QLabel *train_speed_text;
+    QSpinBox *train_speed_spinbox;
+    QPushButton *train_speed_button;
     QStatusBar *statusbar;
 
     void setupUi(QMainWindow *MainWindow)
@@ -100,6 +103,22 @@ public:
         mine_duration_spinbox->setMinimum(1);
         mine_duration_spinbox->setMaximum(1000);
         mine_duration_spinbox->setValue(60);
+        train_speed_text = new QLabel(centralwidget);
+        train_speed_text->setObjectName(QString::fromUtf8("train_speed_text"));
+        train_speed_text->setGeometry(QRect(1400, 105, 151, 21));
+        train_speed_text->setFont(font1);
+        train_speed_text->setAlignment(Qt::AlignCenter);
+        train_speed_spinbox = new QSpinBox(centralwidget);
+        train_speed_spinbox->setObjectName(QString::fromUtf8("train_speed_spinbox"));
+        train_speed_spinbox->setGeometry(QRect(1450, 130, 61, 51));
+        train_speed_spinbox->setFont(font1);
+        train_speed_spinbox->setAlignment(Qt::AlignCenter);
+        train_speed_spinbox->setMinimum(1);
+        train_speed_spinbox->setMaximum(10);
+        train_speed_spinbox->setValue(1);
+        train_speed_button = new QPushButton(centralwidget);
+        train_speed_button->setObjectName(QString::fromUtf8("train_speed_button"));
+        train_speed_button->setGeometry(QRect(1440, 185, 80, 24));
         MainWindow->setCentralWidget(centralwidget);
         statusbar = new QStatusBar(MainWindow);
         statusbar->setObjectName(QString::fromUtf8("statusbar"));
@@ -120,6 +139,8 @@ public:
         platform_stay_button->setText(QCoreApplication::translate("MainWindow", "Confirm", nullptr));
         mine_duration_text->setText(QCoreApplication::translate("MainWindow", "Mine duration", nullptr));
         mine_duration_button->setText(QCoreApplication::translate("MainWindow", "Confirm", nullptr));
+        train_speed_text->setText(QCoreApplication::translate("MainWindow", "Train Speed", nullptr));
+        train_speed_button->setText(QCoreApplication::translate("MainWindow", "Confirm", nullptr));
     } // retranslateUi
 
 };

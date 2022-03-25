@@ -167,3 +167,9 @@ void MainWindow::on_mine_duration_button_clicked()
     gate_in->change_platform_duration(false, ui->mine_duration_spinbox->value());
 }
 
+
+void MainWindow::on_train_speed_button_clicked()
+{
+    canvas_animation->set_block_per_second(ui->train_speed_spinbox->value());
+}
+
