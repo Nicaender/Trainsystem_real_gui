@@ -24,14 +24,9 @@ void Train_maker::run()
             qDebug() << QString::fromStdString("Train ") + QString::number(new_train->getId()) + " is coming";
             emit notify_train_incoming(new_train);
         }
-        this->msleep(1000 / multiplier);
+        this->usleep(1000000 / multiplier);
         m.unlock();
     }
-}
-
-void Train_maker::setMultiplier(int newMultiplier)
-{
-    this->multiplier = newMultiplier;
 }
 
 void Train_maker::setTrain_interval(int newTrain_interval)
@@ -42,4 +37,9 @@ void Train_maker::setTrain_interval(int newTrain_interval)
 void Train_maker::notified_incoming_train_full(bool input)
 {
     this->halt = input;
+}
+
+void Train_maker::set_multiplier(int new_multiplier)
+{
+    multiplier = new_multiplier;
 }

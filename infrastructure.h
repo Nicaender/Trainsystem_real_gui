@@ -32,6 +32,8 @@ public:
     std::vector<int> *getMines() const;
     void setMines(const int &newMines);
 
+    void set_stay(int new_stay);
+
 private:
     enum {RAIL, PLATFORM, MINE};
     int type = -1, x = -1, y = -1;
