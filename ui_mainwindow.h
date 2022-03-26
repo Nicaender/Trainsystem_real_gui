@@ -156,6 +156,9 @@ public:
         legend_rail = new QLabel(centralwidget);
         legend_rail->setObjectName(QString::fromUtf8("legend_rail"));
         legend_rail->setGeometry(QRect(1390, 630, 40, 30));
+        QFont font3;
+        font3.setBold(false);
+        legend_rail->setFont(font3);
         legend_rail->setStyleSheet(QString::fromUtf8("background-color: rgb(205, 255, 205); border: 1px solid black;"));
         legend_rail_2 = new QLabel(centralwidget);
         legend_rail_2->setObjectName(QString::fromUtf8("legend_rail_2"));
@@ -184,9 +187,9 @@ public:
         pause_button = new QPushButton(centralwidget);
         pause_button->setObjectName(QString::fromUtf8("pause_button"));
         pause_button->setGeometry(QRect(5, 100, 151, 41));
-        QFont font3;
-        font3.setPointSize(16);
-        pause_button->setFont(font3);
+        QFont font4;
+        font4.setPointSize(16);
+        pause_button->setFont(font4);
         MainWindow->setCentralWidget(centralwidget);
         incoming_train_text->raise();
         multiplier_spinbox->raise();

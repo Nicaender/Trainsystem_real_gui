@@ -367,6 +367,11 @@
       <height>30</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <bold>false</bold>
+     </font>
+    </property>
     <property name="styleSheet">
      <string notr="true">background-color: rgb(205, 255, 205); border: 1px solid black;</string>
     </property>

@@ -21,7 +21,9 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-signals:
+private:
+    void start_simulation();
+    void mark_intersections();
 
 public slots:
     void notified_train_label_attach(Train*);
@@ -55,8 +57,7 @@ private:
     std::pair<QLabel*, Train*> **train_labels;
     QLabel** map_labels;
     bool start = false;
-
-    void start_simulation();
     Ui::MainWindow *ui;
+
 };
 #endif // MAINWINDOW_H

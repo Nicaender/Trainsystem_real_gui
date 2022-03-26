@@ -55,6 +55,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(gate_in, SIGNAL(notify_train_label_detach(Train*)), this, SLOT(notified_train_label_detach(Train*)));
 
     this->gate_in->map_coloring();
+    this->mark_intersections();
 }
 
 MainWindow::~MainWindow()
@@ -122,7 +123,7 @@ void MainWindow::notified_color(int x, int y, int type)
 {
     int y2 = (39) * y;
     if(type == 0)
-        this->map_labels[y2 + x]->setStyleSheet("background-color: rgb(205, 255, 205); border: 1px solid black");
+        this->map_labels[y2 + x]->setStyleSheet("background-color: rgb(205, 255, 205); border: 1px solid black; font: 10pt; font-weight: bold;");
     else if(type == 1)
         this->map_labels[y2 + x]->setStyleSheet("background-color: rgb(205, 205, 255); border: 1px solid black");
     else
@@ -166,6 +167,119 @@ void MainWindow::start_simulation()
     gate_in->start();
     canvas_animation->start();
     train_create->start();
+}
+
+void MainWindow::mark_intersections()
+{
+    // Intersection between Line I and II
+    map_labels[48]->setText("/");
+    map_labels[48]->setAlignment(Qt::AlignCenter);
+    map_labels[50]->setText("\\");
+    map_labels[50]->setAlignment(Qt::AlignCenter);
+    map_labels[71]->setText("/");
+    map_labels[71]->setAlignment(Qt::AlignCenter);
+    map_labels[73]->setText("\\");
+    map_labels[73]->setAlignment(Qt::AlignCenter);
+    map_labels[75]->setText("/");
+    map_labels[75]->setAlignment(Qt::AlignCenter);
+
+    // Intersection between Line II and III
+    map_labels[121]->setText("/");
+    map_labels[121]->setAlignment(Qt::AlignCenter);
+    map_labels[123]->setText("\\");
+    map_labels[123]->setAlignment(Qt::AlignCenter);
+    map_labels[130]->setText("\\");
+    map_labels[130]->setAlignment(Qt::AlignCenter);
+    map_labels[134]->setText("\\");
+    map_labels[134]->setAlignment(Qt::AlignCenter);
+    map_labels[148]->setText("/");
+    map_labels[148]->setAlignment(Qt::AlignCenter);
+    map_labels[151]->setText("/");
+    map_labels[151]->setAlignment(Qt::AlignCenter);
+
+    // Intersection on Line III
+    map_labels[170]->setText("\\");
+    map_labels[170]->setAlignment(Qt::AlignCenter);
+    map_labels[174]->setText("\\");
+    map_labels[174]->setAlignment(Qt::AlignCenter);
+    map_labels[186]->setText("/");
+    map_labels[186]->setAlignment(Qt::AlignCenter);
+    map_labels[189]->setText("/");
+    map_labels[189]->setAlignment(Qt::AlignCenter);
+
+    // Intersection between Line III and IV
+    map_labels[201]->setText("\\");
+    map_labels[201]->setAlignment(Qt::AlignCenter);
+    map_labels[203]->setText("\\");
+    map_labels[203]->setAlignment(Qt::AlignCenter);
+    map_labels[210]->setText("\\");
+    map_labels[210]->setAlignment(Qt::AlignCenter);
+    map_labels[214]->setText("/");
+    map_labels[214]->setAlignment(Qt::AlignCenter);
+    map_labels[224]->setText("/");
+    map_labels[224]->setAlignment(Qt::AlignCenter);
+    map_labels[227]->setText("/");
+    map_labels[227]->setAlignment(Qt::AlignCenter);
+
+    // Intersection on Line IV
+    map_labels[265]->setText("/");
+    map_labels[265]->setAlignment(Qt::AlignCenter);
+
+    // Intersection between Line IV and V
+    map_labels[281]->setText("\\");
+    map_labels[281]->setAlignment(Qt::AlignCenter);
+    map_labels[283]->setText("\\");
+    map_labels[283]->setAlignment(Qt::AlignCenter);
+    map_labels[290]->setText("/");
+    map_labels[290]->setAlignment(Qt::AlignCenter);
+    map_labels[300]->setText("/");
+    map_labels[300]->setAlignment(Qt::AlignCenter);
+    map_labels[303]->setText("/");
+    map_labels[303]->setAlignment(Qt::AlignCenter);
+
+    // Intersection on Line V
+    map_labels[321]->setText("\\");
+    map_labels[321]->setAlignment(Qt::AlignCenter);
+    map_labels[341]->setText("/");
+    map_labels[341]->setAlignment(Qt::AlignCenter);
+
+    // Intersection between Line V and VI
+    map_labels[361]->setText("\\");
+    map_labels[361]->setAlignment(Qt::AlignCenter);
+    map_labels[363]->setText("\\");
+    map_labels[363]->setAlignment(Qt::AlignCenter);
+    map_labels[366]->setText("/");
+    map_labels[366]->setAlignment(Qt::AlignCenter);
+    map_labels[376]->setText("/");
+    map_labels[376]->setAlignment(Qt::AlignCenter);
+    map_labels[379]->setText("/");
+    map_labels[379]->setAlignment(Qt::AlignCenter);
+
+    // Intersection between Line VI and VII
+    map_labels[441]->setText("\\");
+    map_labels[441]->setAlignment(Qt::AlignCenter);
+    map_labels[443]->setText("\\");
+    map_labels[443]->setAlignment(Qt::AlignCenter);
+    map_labels[445]->setText("/");
+    map_labels[445]->setAlignment(Qt::AlignCenter);
+    map_labels[455]->setText("/");
+    map_labels[455]->setAlignment(Qt::AlignCenter);
+
+    // Intersection on Line VII
+    map_labels[493]->setText("/");
+    map_labels[493]->setAlignment(Qt::AlignCenter);
+
+    // Intersection between Line VII and VIII
+    map_labels[521]->setText("\\");
+    map_labels[521]->setAlignment(Qt::AlignCenter);
+    map_labels[523]->setText("\\");
+    map_labels[523]->setAlignment(Qt::AlignCenter);
+    map_labels[531]->setText("/");
+    map_labels[531]->setAlignment(Qt::AlignCenter);
+
+    // Intersection on Line VIII
+    map_labels[569]->setText("/");
+    map_labels[569]->setAlignment(Qt::AlignCenter);
 }
 
 void MainWindow::on_multiplier_button_clicked()
