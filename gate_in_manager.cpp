@@ -43,7 +43,6 @@ void Gate_In_Manager::run()
         }
         QMutex m;
         m.lock();
-        qDebug() << timer;
         timer++;
         emit notify_update_current_time(timer);
 

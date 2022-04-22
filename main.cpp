@@ -1,5 +1,8 @@
-#include "mainwindow.h"
+/**
+ * @author Farouq Abdurrahman and Agustinus Nicander Hery
+*/
 
+#include "mainwindow.h"
 #include <QApplication>
 
 int main(int argc, char *argv[])
